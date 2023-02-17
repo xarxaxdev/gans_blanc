@@ -3,7 +3,7 @@ import nltk
 
 from nltk.tree import Tree
 from utils.IOfunctions import read_raw_data
-
+from model_generation import *
 
 GRAMMAR_PATH = './data/atis-grammar-cnf.cfg'
 
@@ -18,11 +18,22 @@ def main():
         help='blablabal',
         action='store'
     )
+    parser.add_argument(
+        '--roberta_test', dest='roberta_test',
+        help='blablabal',
+        action='store'
+    )
 
     args = parser.parse_args()
 
     #take argument value or default
     preprocess_data = arg.preprocess_data if arg.preprocess_data else '' 
+
+    if args.roberta_test != '':
+        sentences = ['hello can i have some pizza',
+        'do you want some tea']
+
+        model_generation.test_roberta(sentences)
 
     if args.preprocess_data != '':
         base_data = read_raw_data()        
