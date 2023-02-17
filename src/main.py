@@ -2,8 +2,9 @@ import argparse
 import nltk
 
 from nltk.tree import Tree
+
+import model_generation
 from utils.IOfunctions import read_raw_data
-from model_generation import *
 
 GRAMMAR_PATH = './data/atis-grammar-cnf.cfg'
 
@@ -27,7 +28,7 @@ def main():
     args = parser.parse_args()
 
     #take argument value or default
-    preprocess_data = arg.preprocess_data if arg.preprocess_data else '' 
+    preprocess_data = args.preprocess_data if args.preprocess_data else ''
 
     if args.roberta_test != '':
         sentences = ['hello can i have some pizza',
