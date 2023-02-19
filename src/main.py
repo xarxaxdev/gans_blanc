@@ -24,6 +24,11 @@ def main():
         help='blablabal',
         action='store'
     )
+    parser.add_argument(
+        '--glove_test', dest='glove_test',
+        help='blablabal',
+        action='store'
+    )
 
     args = parser.parse_args()
 
@@ -35,6 +40,12 @@ def main():
         'do you want some tea']
 
         model_generation.test_roberta(sentences)
+
+    if args.glove_test != '':
+        sentences = ['hello can i have some pizza',
+        'do you want some tea']
+
+        model_generation.test_glove()
 
     if args.preprocess_data != '':
         base_data = read_raw_data()        

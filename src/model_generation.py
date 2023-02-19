@@ -1,5 +1,26 @@
 ###Here will be the main script for generating the models
 import spacy
+import nltk
+
+###glove test added on 19.02. by yisheng###
+import numpy as np
+from scipy import spatial
+import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
+
+def test_glove():
+    embeddings_dict = {}
+    with open('src/glove/glove.6B.50d.txt', 'r', encoding='utf-8') as f:
+        for line in f:
+            values = line.split()
+            word = values[0]
+            vector = np.asarray(values[1:], 'float32')
+            embeddings_dict[word] = vector
+    
+    print(embeddings_dict['the'])
+    print(len(embeddings_dict['the']))
+
+
 
 def test_roberta(sentences):
     # load one of the models listed at https://github.com/MartinoMensio/spacy-sentence-bert/
@@ -14,7 +35,8 @@ def test_roberta(sentences):
     print('------------doc1------------')
     for tok in doc_1:
         #print(tok.text, tok.pos_)
-        continute
+        # continute
+        pass
        
     print('------------doc2------------')
     for tok in doc_2:
