@@ -44,8 +44,10 @@ def main():
     if args.glove_test != '':
         sentences = ['hello can i have some pizza',
         'do you want some tea']
+        
+        model_generation.load_data('src/data/NER_TRAIN_JUDGEMENT.json')
 
-        model_generation.test_glove()
+        model_generation.test_glove(sentences)
 
     if args.preprocess_data != '':
         base_data = read_raw_data()        

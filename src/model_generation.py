@@ -7,8 +7,10 @@ import numpy as np
 from scipy import spatial
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
+import json
 
-def test_glove():
+
+def test_glove(sentences):
     embeddings_dict = {}
     with open('src/glove/glove.6B.50d.txt', 'r', encoding='utf-8') as f:
         for line in f:
@@ -21,11 +23,17 @@ def test_glove():
     print(len(embeddings_dict['the']))
 
     # test to trnasform a random sentence into glove embedding
-    sentence = "do you want some tea"
-    tokens = nltk.word_tokenize(sentence)
+    sentence_tokenized = []
     embedding = []
-    for token in tokens:
-        embedding.append(embeddings_dict[token])
+    
+    for sentence in sentences:
+        tokens = list(nltk.word_tokenize(sentence))
+        sentence_tokenized.append(tokens)
+        embedding.append([])
+        print(tokens)
+    for i in range(0, len(sentence_tokenized)):
+        for j in range(0, len(sentence_tokenized[i])):
+            embedding[i].append(embeddings_dict[sentence_tokenized[i][j]])
     
     print(embedding)
 
@@ -72,3 +80,11 @@ for tok in doc_1:
     print(doc_1._.trf_data.tensors)
     
 """
+
+# load json files, not sure how to define data structure to fit our model
+def load_data(path):
+    
+    with open(path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+        print(data[0])
