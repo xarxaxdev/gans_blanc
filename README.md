@@ -9,3 +9,9 @@ Notes: https://docs.google.com/document/d/1Uk424c01Fjkt8-SLUIOqfsRpGbOZiw5F8Q828
 
 Download the pretrained model:
 python -m spacy download en_core_web_trf
+
+
+Download GloVe:
+https://github.com/stanfordnlp/GloVe
+Find the link under section "Download pre-trained word vectors" in readme.md
+Put the .txt files under /src/glove/ in gans_blanc repository to be loaded
