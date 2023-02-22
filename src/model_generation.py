@@ -20,6 +20,15 @@ def test_glove():
     print(embeddings_dict['the'])
     print(len(embeddings_dict['the']))
 
+    # test to trnasform a random sentence into glove embedding
+    sentence = "do you want some tea"
+    tokens = nltk.word_tokenize(sentence)
+    embedding = []
+    for token in tokens:
+        embedding.append(embeddings_dict[token])
+    
+    print(embedding)
+
 
 
 def test_roberta(sentences):
