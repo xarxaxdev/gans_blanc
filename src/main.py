@@ -45,7 +45,7 @@ def main():
         sentences = ['hello can i have some pizza',
         'do you want some tea']
         
-        model_generation.load_data('src/data/NER_TRAIN_JUDGEMENT.json')
+        read_raw_data('src/data/NER_TRAIN_JUDGEMENT.json')
 
         model_generation.test_glove(sentences)
 

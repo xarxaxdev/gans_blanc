@@ -19,8 +19,8 @@ def test_glove(sentences):
             vector = np.asarray(values[1:], 'float32')
             embeddings_dict[word] = vector
     
-    print(embeddings_dict['the'])
-    print(len(embeddings_dict['the']))
+    # print(embeddings_dict['the'])
+    # print(len(embeddings_dict['the']))
 
     # test to trnasform a random sentence into glove embedding
     sentence_tokenized = []
@@ -81,10 +81,3 @@ for tok in doc_1:
     
 """
 
-# load json files, not sure how to define data structure to fit our model
-def load_data(path):
-    
-    with open(path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-
-        print(data[0])
