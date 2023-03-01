@@ -4,7 +4,7 @@ import nltk
 from nltk.tree import Tree
 
 import model_generation
-from utils.IOfunctions import read_raw_data
+from utils.IOfunctions import read_raw_data, build_training_data
 
 GRAMMAR_PATH = './data/atis-grammar-cnf.cfg'
 
@@ -44,8 +44,6 @@ def main():
     if args.glove_test != '':
         sentences = ['hello can i have some pizza',
         'do you want some tea']
-        
-        read_raw_data('src/data/NER_TRAIN_JUDGEMENT.json')
 
         model_generation.test_glove(sentences)
 
