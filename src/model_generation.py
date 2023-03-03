@@ -19,7 +19,7 @@ import torch.optim as optim
 from utils.NLP_utils import *
 from utils.IOfunctions import read_raw_data, build_training_data
 
-
+import time
 
 torch.manual_seed(1)
 
@@ -40,7 +40,7 @@ HIDDEN_DIM = 4
 # )]
 
 # load our training data
-raw_data = read_raw_data('src/data/NER_TRAIN_JUDGEMENT.json')
+raw_data = read_raw_data('./data/NER_TRAIN_JUDGEMENT.json')
 training_data = build_training_data(raw_data)
 
 
@@ -113,8 +113,8 @@ class BiLSTM_CRF(nn.Module):
         #self.CRF = CRF(len(ent_to_ix), batch_first=True)
 
     def init_hidden(self):
-        return (torch.randn(2, 1, self.hidden_dim // 2),
-                torch.randn(2, 1, self.hidden_dim // 2))
+        return (torch.randn(4, 1, self.hidden_size // 2),
+                torch.randn(4, 1, self.hidden_size // 2))
 
     def _forward_alg(self, feats):
         # Do the forward algorithm to compute the partition function
@@ -143,7 +143,7 @@ class BiLSTM_CRF(nn.Module):
                 # scores.
                 alphas_t.append(log_sum_exp(next_tag_var).view(1))
             forward_var = torch.cat(alphas_t).view(1, -1)
-        terminal_var = forward_var + self.transitions[self.tag_to_ix[STOP_TAG]]
+        terminal_var = forward_var + self.transitions[self.ent_to_ix[STOP_TAG]]
         alpha = log_sum_exp(terminal_var)
         return alpha
 
@@ -158,8 +158,8 @@ class BiLSTM_CRF(nn.Module):
     def _get_lstm_features(self, sentence):
         self.hidden = self.init_hidden()
         embeds = self.word_embeds(sentence).view(len(sentence), 1, -1)
-        lstm_out, self.hidden = self.lstm(embeds, self.hidden)
-        lstm_out = lstm_out.view(len(sentence), self.hidden_dim)
+        lstm_out, self.hidden = self.BiLSTM(embeds, self.hidden)
+        lstm_out = lstm_out.view(len(sentence), self.hidden_size)
         lstm_feats = self.hidden2tag(lstm_out)
         return lstm_feats
 
@@ -173,6 +173,64 @@ class BiLSTM_CRF(nn.Module):
         score = score + self.transitions[self.ent_to_ix[STOP_TAG], tags[-1]]
         return score
 
+    def _viterbi_decode(self, feats):
+        backpointers = []
+
+        # Initialize the viterbi variables in log space
+        init_vvars = torch.full((1, self.entset_size), -10000.)
+        init_vvars[0][self.ent_to_ix[START_TAG]] = 0
+
+        # forward_var at step i holds the viterbi variables for step i-1
+        forward_var = init_vvars
+        for feat in feats:
+            bptrs_t = []  # holds the backpointers for this step
+            viterbivars_t = []  # holds the viterbi variables for this step
+
+            for next_tag in range(self.entset_size):
+                # next_tag_var[i] holds the viterbi variable for tag i at the
+                # previous step, plus the score of transitioning
+                # from tag i to next_tag.
+                # We don't include the emission scores here because the max
+                # does not depend on them (we add them in below)
+                next_tag_var = forward_var + self.transitions[next_tag]
+                best_tag_id = argmax(next_tag_var)
+                bptrs_t.append(best_tag_id)
+                viterbivars_t.append(next_tag_var[0][best_tag_id].view(1))
+            # Now add in the emission scores, and assign forward_var to the set
+            # of viterbi variables we just computed
+            forward_var = (torch.cat(viterbivars_t) + feat).view(1, -1)
+            backpointers.append(bptrs_t)
+
+        # Transition to STOP_TAG
+        terminal_var = forward_var + self.transitions[self.ent_to_ix[STOP_TAG]]
+        best_tag_id = argmax(terminal_var)
+        path_score = terminal_var[0][best_tag_id]
+
+        # Follow the back pointers to decode the best path.
+        best_path = [best_tag_id]
+        for bptrs_t in reversed(backpointers):
+            best_tag_id = bptrs_t[best_tag_id]
+            best_path.append(best_tag_id)
+        # Pop off the start tag (we dont want to return that to the caller)
+        start = best_path.pop()
+        assert start == self.ent_to_ix[START_TAG]  # Sanity check
+        best_path.reverse()
+        return path_score, best_path
+
+    def neg_log_likelihood(self, sentence, tags):
+        feats = self._get_lstm_features(sentence)
+        forward_score = self._forward_alg(feats)
+        gold_score = self._score_sentence(feats, tags)
+        return forward_score - gold_score
+
+    def forward(self, sentence):  # dont confuse this with _forward_alg above.
+        # Get the emission scores from the BiLSTM
+        lstm_feats = self._get_lstm_features(sentence)
+
+        # Find the best path, given the features.
+        score, tag_seq = self._viterbi_decode(lstm_feats)
+        return score, tag_seq
+
     #def train(self, ):
 
         # model initialization:
@@ -181,7 +239,49 @@ class BiLSTM_CRF(nn.Module):
 
         #training phase
 
-gans = BiLSTM_CRF(128, 64, 2, 2, 0.25, ent_to_ix)
+gans = BiLSTM_CRF(len(word_to_ix), 32, 2, 2, 0.25, ent_to_ix)
+optimizer = optim.SGD(gans.parameters(), lr=0.01, weight_decay=1e-4)
+
+# Check predictions before training
+#with torch.no_grad():
+    #precheck_sent = prepare_sequence(training_data[0][0], word_to_ix)
+    #precheck_tags = torch.tensor([ent_to_ix[t] for t in training_data[0][1]], dtype=torch.long)
+    #print(gans(precheck_sent))
+
+start = time.time()
+
+print("-----starting training-----")
+
+for epoch in range(
+        3):
+    print("---starting epoch {}---".format(epoch))
+    for sentence, tags in training_data:
+        # Step 1. Remember that Pytorch accumulates gradients.
+        # We need to clear them out before each instance
+        gans.zero_grad()
+
+        # Step 2. Get our inputs ready for the network, that is,
+        # turn them into Tensors of word indices.
+        sentence_in = prepare_sequence(sentence, word_to_ix)
+        targets = torch.tensor([ent_to_ix[t] for t in tags], dtype=torch.long)
+
+        # Step 3. Run our forward pass.
+        loss = gans.neg_log_likelihood(sentence_in, targets)
+
+        # Step 4. Compute the loss, gradients, and update the parameters by
+        # calling optimizer.step()
+        loss.backward()
+        optimizer.step()
+    epoch_time = time.time()
+    print("---time elapsed after {}th epoch: {}".format(epoch, epoch_time))
+
+total = time.time()
+print("-----finished training at {}-----".format(total))
+
+# Check predictions after training
+with torch.no_grad():
+    precheck_sent = prepare_sequence(training_data[0][0], word_to_ix)
+    print(gans(precheck_sent))
 
 
 def test_glove(sentences):

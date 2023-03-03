@@ -1,6 +1,6 @@
 ##Here we should define the specific NLP functions
 ##Basically anything that transforms text to some numerical representation
-
+import torch
 
 from nltk.tokenize import word_tokenize
 
@@ -23,6 +23,9 @@ def log_sum_exp_batch(log_Tensor, axis=-1): # shape (batch_size,n,m)
     return torch.max(log_Tensor, axis)[0] + \
         torch.log(torch.exp(log_Tensor-torch.max(log_Tensor, axis)[0].view(log_Tensor.shape[0],-1,1)).sum(axis))
 
+def prepare_sequence(seq, to_ix):
+    idxs = [to_ix[w] for w in seq]
+    return torch.tensor(idxs, dtype=torch.long)
 
 def tokenize(data):
     return word_tokenize(data['data']['text'])
