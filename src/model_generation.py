@@ -2,12 +2,12 @@
 import spacy
 import nltk
 
-###glove test added on 19.02. by yisheng###
+###glove test added on 19.02. by yisheng### (mostly seem useless)
 import numpy as np
-from scipy import spatial
-import matplotlib.pyplot as plt
-from sklearn.manifold import TSNE
-import json
+# from scipy import spatial
+# import matplotlib.pyplot as plt
+# from sklearn.manifold import TSNE
+# import json
 
 #pytorch test by delfina, will need it whether we end up discarding spacy or not
 import torch
@@ -17,6 +17,9 @@ import torch.optim as optim
 #from transformers import RobertaModel
 
 from utils.NLP_utils import *
+from utils.IOfunctions import read_raw_data, build_training_data
+
+
 
 torch.manual_seed(1)
 
@@ -28,21 +31,64 @@ EMBEDDING_DIM = 5
 HIDDEN_DIM = 4
 
 # Make up some training data
-training_data = [(
-    "the wall street journal reported today that apple corporation made money".split(),
-    "B I I I O O O B I O O".split()
-), (
-    "georgia tech is a university in georgia".split(),
-    "B I O O O O B".split()
-)]
+# training_data = [(
+#     "the wall street journal reported today that apple corporation made money".split(),
+#     "B I I I O O O B I O O".split()
+# ), (
+#     "georgia tech is a university in georgia".split(),
+#     "B I O O O O B".split()
+# )]
 
+# load our training data
+raw_data = read_raw_data('src/data/NER_TRAIN_JUDGEMENT.json')
+training_data = build_training_data(raw_data)
+
+
+# should use embedding instead?
 word_to_ix = {}
 for sentence, tags in training_data:
     for word in sentence:
         if word not in word_to_ix:
             word_to_ix[word] = len(word_to_ix)
 
-ent_to_ix = {"B": 0, "I": 1, "O": 2, START_TAG: 3, STOP_TAG: 4}
+# ent_to_ix = {"B": 0, "I": 1, "O": 2, START_TAG: 3, STOP_TAG: 4}
+
+ent_to_ix = {
+    "O": 0,
+    START_TAG: 1,
+    STOP_TAG: 2,
+    
+    "B-COURT": 3,
+    "B-PETITIONER": 4,
+    "B-RESPONDENT": 5,
+    "B-JUDGE": 6,
+    "B-LAWYER": 7,
+    "B-DATE": 8,
+    "B-ORG": 9,
+    "B-GPE": 10,
+    "B-STATUTE": 11,
+    "B-PROVISION": 12,
+    "B-PRECEDENT": 13,
+    "B-CASE_NUMBER": 14,
+    "B-WITNESS": 15,
+    "B-OTHER_PERSON": 16,
+    
+    "I-COURT": 17,
+    "I-PETITIONER": 18,
+    "I-RESPONDENT": 19,
+    "I-JUDGE": 20,
+    "I-LAWYER": 21,
+    "I-DATE": 22,
+    "I-ORG": 23,
+    "I-GPE": 24,
+    "I-STATUTE": 25,
+    "I-PROVISION": 26,
+    "I-PRECEDENT": 27,
+    "I-CASE_NUMBER": 28,
+    "I-WITNESS": 29,
+    "I-OTHER_PERSON": 30,
+}
+
 
 class BiLSTM_CRF(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, embedding_dim, dropout, ent_to_ix, batch_first=True):
