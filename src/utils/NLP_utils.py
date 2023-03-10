@@ -54,5 +54,5 @@ def bio(data):
     # print(data)
     # print(tag)
     
-    return tag
+    return (tokenized, tag)
 

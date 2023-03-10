@@ -30,29 +30,8 @@ STOP_TAG = "<STOP>"
 EMBEDDING_DIM = 5
 HIDDEN_DIM = 4
 
-# Make up some training data
-# training_data = [(
-#     "the wall street journal reported today that apple corporation made money".split(),
-#     "B I I I O O O B I O O".split()
-# ), (
-#     "georgia tech is a university in georgia".split(),
-#     "B I O O O O B".split()
-# )]
-
-# load our training data
-raw_data = read_raw_data('./data/NER_TRAIN_JUDGEMENT.json')
-training_data = build_training_data(raw_data)
-
-
-# should use embedding instead?
-word_to_ix = {}
-for sentence, tags in training_data:
-    for word in sentence:
-        if word not in word_to_ix:
-            word_to_ix[word] = len(word_to_ix)
 
 # ent_to_ix = {"B": 0, "I": 1, "O": 2, START_TAG: 3, STOP_TAG: 4}
-
 ent_to_ix = {
     "O": 0,
     START_TAG: 1,
@@ -88,6 +67,9 @@ ent_to_ix = {
     "I-WITNESS": 29,
     "I-OTHER_PERSON": 30,
 }
+
+
+
 
 
 class BiLSTM_CRF(nn.Module):
@@ -239,21 +221,40 @@ class BiLSTM_CRF(nn.Module):
 
         #training phase
 
-gans = BiLSTM_CRF(len(word_to_ix), 32, 2, 2, 0.25, ent_to_ix)
-optimizer = optim.SGD(gans.parameters(), lr=0.01, weight_decay=1e-4)
 
-# Check predictions before training
-#with torch.no_grad():
-    #precheck_sent = prepare_sequence(training_data[0][0], word_to_ix)
-    #precheck_tags = torch.tensor([ent_to_ix[t] for t in training_data[0][1]], dtype=torch.long)
-    #print(gans(precheck_sent))
 
-start = time.time()
 
-print("-----starting training-----")
 
-for epoch in range(
-        3):
+# Make up some training data
+# training_data = [(
+#     "the wall street journal reported today that apple corporation made money".split(),
+#     "B I I I O O O B I O O".split()
+# ), (
+#     "georgia tech is a university in georgia".split(),
+#     "B I O O O O B".split()
+# )]
+
+
+
+def build_representation():
+
+    # load our training data
+    print(f'{time.time()}-----READING DATA AND TRANSFORMING IT-----')
+    raw_data = read_raw_data('NER_TRAIN_JUDGEMENT.json')
+    training_data = build_training_data(raw_data)
+
+    print(f'{time.time()}-----READ DATA AND TRANSFORMED IT-----')
+
+    # should use embedding instead?
+    word_to_ix = {}
+    for sentence, tags in training_data:
+        for word in sentence:
+            if word not in word_to_ix:
+                word_to_ix[word] = len(word_to_ix)
+    return training_data,word_to_ix
+
+
+def do_an_echo(training_data, model, optimizer,word_to_ix):
     print("---starting epoch {}---".format(epoch))
     for sentence, tags in training_data:
         # Step 1. Remember that Pytorch accumulates gradients.
@@ -274,6 +275,26 @@ for epoch in range(
         optimizer.step()
     epoch_time = time.time()
     print("---time elapsed after {}th epoch: {}".format(epoch, epoch_time))
+
+
+
+training_data,word_to_ix = build_representation()
+
+gans = BiLSTM_CRF(len(word_to_ix), 32, 2, 2, 0.25, ent_to_ix)
+optimizer = optim.SGD(gans.parameters(), lr=0.01, weight_decay=1e-4)
+
+# Check predictions before training
+#with torch.no_grad():
+    #precheck_sent = prepare_sequence(training_data[0][0], word_to_ix)
+    #precheck_tags = torch.tensor([ent_to_ix[t] for t in training_data[0][1]], dtype=torch.long)
+    #print(gans(precheck_sent))
+
+start = time.time()
+
+print("-----starting training-----")
+
+for epoch in range(3):
+    do_an_echo(training_data, model= gans, optimizer = optimizer,word_to_ix=word_to_ix)
 
 total = time.time()
 print("-----finished training at {}-----".format(total))

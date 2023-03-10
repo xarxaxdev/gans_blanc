@@ -21,7 +21,7 @@ def build_training_data(raw_data):
     training_data = []
 
     for i in range(0, len(raw_data)):
-        training_data.append((tokenize(raw_data[i]), bio(raw_data[i])))
+        training_data.append( bio(raw_data[i]))
         # print(training_data[i])
     
     return training_data

@@ -48,15 +48,10 @@ def main():
         model_generation.test_glove(sentences)
 
     if args.preprocess_data != '':
-        #read our data
-        raw_data = read_raw_data()        
-        #tokenize and add BIO tagging
-        raw_data = build_training_data(raw_data)
-        #NLPS UTILS WHICHEVER PREPROCESSING CALL FUNCTION
-        our_preprocessed_data = raw_data
-        name_to_save = 'whatever the model and model parameters are to generate that data'
-        write_preprocessed_representation(name_to_save,our_preprocessed_data)
-
+        training_data,word_to_ix = build_representation()
+        gans = BiLSTM_CRF(len(word_to_ix), 32, 2, 2, 0.25, ent_to_ix)
+        optimizer = optim.SGD(gans.parameters(), lr=0.01, weight_decay=1e-4)
+        
 
 if __name__ == "__main__":
     main()
