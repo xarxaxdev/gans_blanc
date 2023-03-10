@@ -27,32 +27,33 @@ def prepare_sequence(seq, to_ix):
     idxs = [to_ix[w] for w in seq]
     return torch.tensor(idxs, dtype=torch.long)
 
-def tokenize(data):
-    return word_tokenize(data['data']['text'])
-
 
 def bio(data):
-    tokenized = tokenize(data)
+    tokenized = word_tokenize(data['data']['text'])
     tag = ['O' for i in range(0, len(tokenized))]
-    
+    tokenized_entities = []
+    for entity in data['annotations'][0]['result']:
+        text = word_tokenize(entity['value']['text'])
+        labels = entity['value']['labels'][0]
+        ent = {'text':text, 'labels':labels}
+        tokenized_entities.append(ent)
     for i in range(0, len(tokenized)):
-        for entity in data['annotations'][0]['result']:
-            entity_token = word_tokenize(entity['value']['text'])
+        for entity in tokenized_entities:
             
             # recognise the first token of the entity
-            if tokenized[i] == entity_token[0] and len(entity_token) == 1:
-                tag[i] = 'B-' + entity['value']['labels'][0]
+            if tokenized[i] == entity['text'][0] and len(entity['text']) == 1:
+                tag[i] = 'B-' + entity['labels']
 
-            if tokenized[i] == entity_token[0] and len(entity_token) >= 2:
+            if tokenized[i] == entity['text'][0] and len(entity['text']) >= 2:
                 # recognise the last token of the entity
-                ending = len(entity_token)-1
-                if 0 < i+ending < len(tokenized) and tokenized[i+ending] == entity_token[ending]:
-                    tag[i] = 'B-' + entity['value']['labels'][0]
-                    for j in range(1, len(entity_token)):
-                        tag[i+j] = 'I-' + entity['value']['labels'][0]
+                ending = len(entity['text'])-1
+                if 0 < i+ending < len(tokenized) and tokenized[i+ending] == entity['text'][-1]:
+                    tag[i] = 'B-' + entity['labels']
+                    for j in range(1, len(entity['text'])):
+                        tag[i+j] = 'I-' + entity['labels']
             
-    # print(data)
-    # print(tag)
+    #print(tokenized)
+    #print(tag)
     
     return (tokenized, tag)
 

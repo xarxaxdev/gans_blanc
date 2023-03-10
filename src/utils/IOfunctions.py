@@ -3,7 +3,7 @@
 # - Pretransformed data
 
 import json,os
-from utils.NLP_utils import tokenize, bio
+from utils.NLP_utils import bio
 
 
 def read_raw_data(filename):
