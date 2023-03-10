@@ -28,7 +28,7 @@ torch.manual_seed(1)
 START_TAG = "<START>"
 STOP_TAG = "<STOP>"
 EMBEDDING_DIM = 5
-HIDDEN_DIM = 4
+HIDDEN_DIM = 2
 
 
 # ent_to_ix = {"B": 0, "I": 1, "O": 2, START_TAG: 3, STOP_TAG: 4}
@@ -68,26 +68,30 @@ ent_to_ix = {
     "I-OTHER_PERSON": 30,
 }
 
-
-
-
-
 class BiLSTM_CRF(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, embedding_dim, dropout, ent_to_ix, batch_first=True):
+    #def __init__(self, input_size, hidden_size, num_layers, embedding_dim, dropout, ent_to_ix, batch_first=True):
+    def __init__(self, input_size, ent_to_ix, embedding_dim, hidden_dim):
         super(BiLSTM_CRF, self).__init__()
         self.input_size = input_size # number of expected features in the input x
-        self.hidden_size = hidden_size #number of features in the hidden state h
-        self.num_layers = num_layers # number of recurrent layers
+        #self.hidden_size = hidden_size #number of features in the hidden state h
+        #self.num_layers = num_layers # number of recurrent layers
+        #self.embedding_dim = embedding_dim
+        #self.dropout = dropout
         self.embedding_dim = embedding_dim
-        self.dropout = dropout
+        self.hidden_dim = hidden_dim
+
+        self.word_embeds = nn.Embedding(input_size, embedding_dim)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim // 2,
+                            num_layers=1, bidirectional=True)
         self.ent_to_ix = ent_to_ix # define helper ent_to_ix
         self.entset_size = len(ent_to_ix) # idem
 
         self.word_embeds = nn.Embedding(input_size, embedding_dim)
 
          # maps output of lstm into tag space
-        self.BiLSTM = nn.LSTM(embedding_dim, hidden_size//2, num_layers, bidirectional=True)
-        self.hidden2tag = nn.Linear(hidden_size, self.entset_size)
+        self.BiLSTM = nn.LSTM(embedding_dim, hidden_dim // 2,
+                            num_layers=1, bidirectional=True)
+        self.hidden2tag = nn.Linear(hidden_dim, self.entset_size)
 
         self.transitions = nn.Parameter(torch.randn(self.entset_size, self.entset_size))
         self.transitions.data[ent_to_ix[START_TAG], :] = -10000
@@ -95,8 +99,8 @@ class BiLSTM_CRF(nn.Module):
         #self.CRF = CRF(len(ent_to_ix), batch_first=True)
 
     def init_hidden(self):
-        return (torch.randn(4, 1, self.hidden_size // 2),
-                torch.randn(4, 1, self.hidden_size // 2))
+        return (torch.randn(2, 1, self.hidden_dim // 2),
+                torch.randn(2, 1, self.hidden_dim // 2))
 
     def _forward_alg(self, feats):
         # Do the forward algorithm to compute the partition function
@@ -129,19 +133,11 @@ class BiLSTM_CRF(nn.Module):
         alpha = log_sum_exp(terminal_var)
         return alpha
 
-    def forward(self, feats):
-        # hs = [batch_size x hidden_size]
-        # cs = [batch_size x hidden_size]
-        hs_forward = torch.zeros(x.size(0), self.hidden_size)
-        cs_forward = torch.zeros(x.size(0), self.hidden_size)
-        hs_backward = torch.zeros(x.size(0), self.hidden_size)
-        cs_backward = torch.zeros(x.size(0), self.hidden_size)
-
     def _get_lstm_features(self, sentence):
         self.hidden = self.init_hidden()
         embeds = self.word_embeds(sentence).view(len(sentence), 1, -1)
         lstm_out, self.hidden = self.BiLSTM(embeds, self.hidden)
-        lstm_out = lstm_out.view(len(sentence), self.hidden_size)
+        lstm_out = lstm_out.view(len(sentence), self.hidden_dim)
         lstm_feats = self.hidden2tag(lstm_out)
         return lstm_feats
 
@@ -221,10 +217,6 @@ class BiLSTM_CRF(nn.Module):
 
         #training phase
 
-
-
-
-
 # Make up some training data
 # training_data = [(
 #     "the wall street journal reported today that apple corporation made money".split(),
@@ -233,8 +225,6 @@ class BiLSTM_CRF(nn.Module):
 #     "georgia tech is a university in georgia".split(),
 #     "B I O O O O B".split()
 # )]
-
-
 
 def build_representation():
 
@@ -251,11 +241,12 @@ def build_representation():
         for word in sentence:
             if word not in word_to_ix:
                 word_to_ix[word] = len(word_to_ix)
-    return training_data,word_to_ix
+    return training_data, word_to_ix
 
 
-def do_an_echo(training_data, model, optimizer,word_to_ix):
+def do_an_echo(training_data, model, optimizer, word_to_ix):
     print("---starting epoch {}---".format(epoch))
+    training_data = training_data[:10] #DELETE
     for sentence, tags in training_data:
         # Step 1. Remember that Pytorch accumulates gradients.
         # We need to clear them out before each instance
@@ -273,14 +264,16 @@ def do_an_echo(training_data, model, optimizer,word_to_ix):
         # calling optimizer.step()
         loss.backward()
         optimizer.step()
+
+        print(model(sentence_in))
+
     epoch_time = time.time()
     print("---time elapsed after {}th epoch: {}".format(epoch, epoch_time))
 
-
-
 training_data,word_to_ix = build_representation()
 
-gans = BiLSTM_CRF(len(word_to_ix), 32, 2, 2, 0.25, ent_to_ix)
+#gans = BiLSTM_CRF(len(word_to_ix), 8, 2, 2, 0.25, ent_to_ix)
+gans = BiLSTM_CRF(len(word_to_ix), ent_to_ix, EMBEDDING_DIM, HIDDEN_DIM)
 optimizer = optim.SGD(gans.parameters(), lr=0.01, weight_decay=1e-4)
 
 # Check predictions before training
@@ -293,16 +286,17 @@ start = time.time()
 
 print("-----starting training-----")
 
-for epoch in range(3):
-    do_an_echo(training_data, model= gans, optimizer = optimizer,word_to_ix=word_to_ix)
+for epoch in range(100):
+    do_an_echo(training_data, model = gans, optimizer = optimizer,word_to_ix=word_to_ix)
+    with torch.no_grad():
+        precheck_sent = prepare_sequence(training_data[0][0], word_to_ix)
+        print(gans(precheck_sent))
 
 total = time.time()
 print("-----finished training at {}-----".format(total))
 
 # Check predictions after training
-with torch.no_grad():
-    precheck_sent = prepare_sequence(training_data[0][0], word_to_ix)
-    print(gans(precheck_sent))
+
 
 
 def test_glove(sentences):
