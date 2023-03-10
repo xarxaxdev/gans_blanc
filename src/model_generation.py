@@ -29,6 +29,7 @@ torch.manual_seed(1)
 
 START_TAG = "<START>"
 STOP_TAG = "<STOP>"
+
 EMBEDDING_DIM = 5
 HIDDEN_DIM = 2
 
@@ -97,14 +98,12 @@ def build_representation():
                 word_to_ix[word] = len(word_to_ix)
     return training_data, word_to_ix
 
-
 def do_an_echo(training_data, model, optimizer, word_to_ix):
-    print("---starting epoch {}---".format(epoch))
     training_data = training_data[:10] #DELETE
     for sentence, tags in training_data:
         # Step 1. Remember that Pytorch accumulates gradients.
         # We need to clear them out before each instance
-        gans.zero_grad()
+        model.zero_grad()
 
         # Step 2. Get our inputs ready for the network, that is,
         # turn them into Tensors of word indices.
@@ -112,7 +111,7 @@ def do_an_echo(training_data, model, optimizer, word_to_ix):
         targets = torch.tensor([ent_to_ix[t] for t in tags], dtype=torch.long)
 
         # Step 3. Run our forward pass.
-        loss = gans.neg_log_likelihood(sentence_in, targets)
+        loss = model.neg_log_likelihood(sentence_in, targets)
 
         # Step 4. Compute the loss, gradients, and update the parameters by
         # calling optimizer.step()
@@ -121,36 +120,39 @@ def do_an_echo(training_data, model, optimizer, word_to_ix):
 
         print(model(sentence_in))
 
-    epoch_time = time.time()
-    print("---time elapsed after {}th epoch: {}".format(epoch, epoch_time))
 
-training_data,word_to_ix = build_representation()
+def build_lstm_model():
+    training_data,word_to_ix = build_representation()
 
-#gans = BiLSTM_CRF(len(word_to_ix), 8, 2, 2, 0.25, ent_to_ix)
-gans = BiLSTM_CRF(len(word_to_ix), ent_to_ix, EMBEDDING_DIM, HIDDEN_DIM)
-optimizer = optim.SGD(gans.parameters(), lr=0.01, weight_decay=1e-4)
+    #gans = BiLSTM_CRF(len(word_to_ix), 8, 2, 2, 0.25, ent_to_ix)
+    gans = BiLSTM_CRF(len(word_to_ix), ent_to_ix, EMBEDDING_DIM, HIDDEN_DIM)
+    optimizer = optim.SGD(gans.parameters(), lr=0.01, weight_decay=1e-4)
 
-# Check predictions before training
-#with torch.no_grad():
-    #precheck_sent = prepare_sequence(training_data[0][0], word_to_ix)
-    #precheck_tags = torch.tensor([ent_to_ix[t] for t in training_data[0][1]], dtype=torch.long)
-    #print(gans(precheck_sent))
+    # Check predictions before training
+    #with torch.no_grad():
+        #precheck_sent = prepare_sequence(training_data[0][0], word_to_ix)
+        #precheck_tags = torch.tensor([ent_to_ix[t] for t in training_data[0][1]], dtype=torch.long)
+        #print(gans(precheck_sent))
 
-start = time.time()
+    start = time.time()
 
-print("-----starting training-----")
+    print("-----starting training-----")
 
-for epoch in range(100):
-    do_an_echo(training_data, model = gans, optimizer = optimizer,word_to_ix=word_to_ix)
-    with torch.no_grad():
-        precheck_sent = prepare_sequence(training_data[0][0], word_to_ix)
-        print(gans(precheck_sent))
+    for epoch in range(100):
+        print("---starting epoch {}---".format(epoch))
+        start = time.time()
+        do_an_echo(training_data, model = gans, optimizer = optimizer,word_to_ix=word_to_ix)
+        with torch.no_grad():
+            precheck_sent = prepare_sequence(training_data[0][0], word_to_ix)
+            print(gans(precheck_sent))
+        #epoch_time = time.time()
+        print("---time elapsed after {}th epoch: {}".format(epoch, round(time.time() - start,3)))
 
-total = time.time()
-print("-----finished training at {}-----".format(total))
+    total = time.time()
+    print("-----finished training at {}-----".format(total))
 
-# Check predictions after training
-
+    # Check predictions after training
+    return gans
 
 
 def test_glove(sentences):

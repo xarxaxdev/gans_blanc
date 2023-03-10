@@ -3,7 +3,7 @@ import nltk
 
 from nltk.tree import Tree
 
-import model_generation
+from model_generation import build_lstm_model
 from utils.IOfunctions import read_raw_data, build_training_data
 
 GRAMMAR_PATH = './data/atis-grammar-cnf.cfg'
@@ -15,7 +15,7 @@ def main():
     )
 
     parser.add_argument(
-        '--preprocess_data', dest='preprocess_data',
+        '--bilstm_crf', dest='bilstm_crf',
         help='blablabal',
         action='store'
     )
@@ -33,25 +33,25 @@ def main():
     args = parser.parse_args()
 
     #take argument value or default
-    preprocess_data = args.preprocess_data if args.preprocess_data else ''
+    #preprocess_data = args.preprocess_data if args.preprocess_data else ''
 
-    if args.roberta_test != '':
+    if args.roberta_test:
+        print('-----testing roberta-----')
         sentences = ['hello can i have some pizza',
         'do you want some tea']
 
         model_generation.test_roberta(sentences)
 
-    if args.glove_test != '':
+    if args.glove_test:
+        print('-----testing glove-----')
         sentences = ['hello can i have some pizza',
         'do you want some tea']
 
         model_generation.test_glove(sentences)
 
-    if args.preprocess_data != '':
-        training_data,word_to_ix = build_representation()
-        gans = BiLSTM_CRF(len(word_to_ix), 32, 2, 2, 0.25, ent_to_ix)
-        optimizer = optim.SGD(gans.parameters(), lr=0.01, weight_decay=1e-4)
-        
+    if args.bilstm_crf != '':        
+        print('-----generating bilstm_crf-----')
+        model = build_lstm_model()
 
 if __name__ == "__main__":
     main()

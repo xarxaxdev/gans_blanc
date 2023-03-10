@@ -9,46 +9,6 @@ from utils.NLP_utils import *
 
 START_TAG = "<START>"
 STOP_TAG = "<STOP>"
-EMBEDDING_DIM = 5
-HIDDEN_DIM = 2
-
-
-# ent_to_ix = {"B": 0, "I": 1, "O": 2, START_TAG: 3, STOP_TAG: 4}
-ent_to_ix = {
-    "O": 0,
-    START_TAG: 1,
-    STOP_TAG: 2,
-    
-    "B-COURT": 3,
-    "B-PETITIONER": 4,
-    "B-RESPONDENT": 5,
-    "B-JUDGE": 6,
-    "B-LAWYER": 7,
-    "B-DATE": 8,
-    "B-ORG": 9,
-    "B-GPE": 10,
-    "B-STATUTE": 11,
-    "B-PROVISION": 12,
-    "B-PRECEDENT": 13,
-    "B-CASE_NUMBER": 14,
-    "B-WITNESS": 15,
-    "B-OTHER_PERSON": 16,
-    
-    "I-COURT": 17,
-    "I-PETITIONER": 18,
-    "I-RESPONDENT": 19,
-    "I-JUDGE": 20,
-    "I-LAWYER": 21,
-    "I-DATE": 22,
-    "I-ORG": 23,
-    "I-GPE": 24,
-    "I-STATUTE": 25,
-    "I-PROVISION": 26,
-    "I-PRECEDENT": 27,
-    "I-CASE_NUMBER": 28,
-    "I-WITNESS": 29,
-    "I-OTHER_PERSON": 30,
-}
 
 class BiLSTM_CRF(nn.Module):
     #def __init__(self, input_size, hidden_size, num_layers, embedding_dim, dropout, ent_to_ix, batch_first=True):
