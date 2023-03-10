@@ -146,7 +146,7 @@ def build_lstm_model():
             precheck_sent = prepare_sequence(training_data[0][0], word_to_ix)
             print(gans(precheck_sent))
         #epoch_time = time.time()
-        print("---time elapsed after {}th epoch: {}".format(epoch, round(time.time() - start,3)))
+        print("---time elapsed after {}th epoch: {}---".format(epoch, round(time.time() - start,3)))
 
     total = time.time()
     print("-----finished training at {}-----".format(total))
