@@ -116,9 +116,10 @@ def do_an_echo(training_data, model, optimizer, word_to_ix):
         # Step 4. Compute the loss, gradients, and update the parameters by
         # calling optimizer.step()
         loss.backward()
-        optimizer.step()
 
-        print(model(sentence_in))
+        #print(model.BiLSTM.weight)
+        #assert(False)
+        optimizer.step()
 
 
 def build_lstm_model():
@@ -126,7 +127,7 @@ def build_lstm_model():
 
     #gans = BiLSTM_CRF(len(word_to_ix), 8, 2, 2, 0.25, ent_to_ix)
     gans = BiLSTM_CRF(len(word_to_ix), ent_to_ix, EMBEDDING_DIM, HIDDEN_DIM)
-    optimizer = optim.SGD(gans.parameters(), lr=0.01, weight_decay=1e-4)
+    optimizer = optim.SGD(gans.parameters(), lr=0.1, weight_decay=1e-4)
 
     # Check predictions before training
     #with torch.no_grad():
@@ -143,7 +144,14 @@ def build_lstm_model():
         start = time.time()
         do_an_echo(training_data, model = gans, optimizer = optimizer,word_to_ix=word_to_ix)
         with torch.no_grad():
+            print('-------training_data[0][0]--------')
+            print(training_data[0][0])  
             precheck_sent = prepare_sequence(training_data[0][0], word_to_ix)
+            print('-------precheck_sent--------')
+            print(precheck_sent)
+            print('-------y--------')
+            print(torch.tensor([ent_to_ix[t] for t in training_data[0][1]], dtype=torch.long))
+            print('-------yhat--------')
             print(gans(precheck_sent))
         #epoch_time = time.time()
         print("---time elapsed after {}th epoch: {}---".format(epoch, round(time.time() - start,3)))
