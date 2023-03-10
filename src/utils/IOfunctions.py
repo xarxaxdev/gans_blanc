@@ -2,13 +2,16 @@
 # - Models
 # - Pretransformed data
 
-import json
+import json,os
 from utils.NLP_utils import tokenize, bio
 
 
-def read_raw_data(path):
-    
-    with open(path, 'r', encoding='utf-8') as f:
+def read_raw_data(filename):
+    cur_path = os.path.split(os.path.realpath(__file__))[0]
+    project_path = os.path.split(cur_path)[0]
+    datafile = os.path.join(project_path,'data',filename)
+    print(datafile)
+    with open(datafile, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
     return data
