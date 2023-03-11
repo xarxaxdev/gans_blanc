@@ -151,10 +151,7 @@ class BiLSTM_CRF(nn.Module):
         score, tag_seq = self._viterbi_decode(lstm_feats)
         return score, tag_seq
 
-    #def train(self, ):
-
+    # def train(self, ):
         # model initialization:
-
         # optimizer initialization:
-
-        #training phase
+        # training phase

@@ -51,7 +51,7 @@ def main():
 
     if args.bilstm_crf != '':        
         print('-----generating bilstm_crf-----')
-        model = build_lstm_model()
+        model = build_lstm_model(100, 10)
 
 if __name__ == "__main__":
     main()

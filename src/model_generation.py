@@ -99,7 +99,7 @@ def build_representation():
     return training_data, word_to_ix
 
 def do_an_echo(training_data, model, optimizer, word_to_ix):
-    training_data = training_data[:10] #DELETE
+    # training_data = training_data[:10] #DELETE
     for sentence, tags in training_data:
         # Step 1. Remember that Pytorch accumulates gradients.
         # We need to clear them out before each instance
@@ -122,8 +122,8 @@ def do_an_echo(training_data, model, optimizer, word_to_ix):
         optimizer.step()
 
 
-def build_lstm_model():
-    training_data,word_to_ix = build_representation()
+def build_lstm_model(epoch_count, batch_size):
+    training_data, word_to_ix = build_representation()
 
     #gans = BiLSTM_CRF(len(word_to_ix), 8, 2, 2, 0.25, ent_to_ix)
     gans = BiLSTM_CRF(len(word_to_ix), ent_to_ix, EMBEDDING_DIM, HIDDEN_DIM)
@@ -137,24 +137,35 @@ def build_lstm_model():
 
     start = time.time()
 
-    print("-----starting training-----")
+    # batch
+    for j in range((len(training_data) - 1) // batch_size + 1):
 
-    for epoch in range(100):
-        print("---starting epoch {}---".format(epoch))
-        start = time.time()
-        do_an_echo(training_data, model = gans, optimizer = optimizer,word_to_ix=word_to_ix)
-        with torch.no_grad():
-            print('-------training_data[0][0]--------')
-            print(training_data[0][0])  
-            precheck_sent = prepare_sequence(training_data[0][0], word_to_ix)
-            print('-------precheck_sent--------')
-            print(precheck_sent)
-            print('-------y--------')
-            print(torch.tensor([ent_to_ix[t] for t in training_data[0][1]], dtype=torch.long))
-            print('-------yhat--------')
-            print(gans(precheck_sent))
-        #epoch_time = time.time()
-        print("---time elapsed after {}th epoch: {}---".format(epoch, round(time.time() - start,3)))
+        batch_start = j * batch_size
+        batch_end = batch_start + batch_size
+        training_batch = training_data[batch_start : batch_end]
+
+        print("-----starting training-----")
+
+
+        for epoch in range(0, epoch_count):
+            print("---starting epoch {}---".format(epoch))
+            start = time.time()
+            do_an_echo(training_batch, model=gans, optimizer=optimizer, word_to_ix=word_to_ix)
+        
+            for i in range(batch_start, batch_end):
+                with torch.no_grad():
+                    print('-------training_data[', i, '][0]--------')
+                    # print(training_data[i][0])
+                    precheck_sent = prepare_sequence(training_data[i][0], word_to_ix)
+                    # print('-------precheck_sent--------')
+                    # print(precheck_sent)
+                    print('-------y--------')
+                    print(torch.tensor([ent_to_ix[t] for t in training_data[i][1]], dtype=torch.long))
+                    print('-------yhat--------')
+                    print(gans(precheck_sent))
+            #epoch_time = time.time()
+            print("---time elapsed after {}th epoch: {}---".format(epoch, round(time.time() - start, 3)))
+
 
     total = time.time()
     print("-----finished training at {}-----".format(total))
