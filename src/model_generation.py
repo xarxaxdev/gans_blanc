@@ -183,8 +183,10 @@ def build_lstm_model(epoch_count, batch_size, lr):
 
             epoch_end = time.time() - epoch_start
             added_epoch += epoch_end
+
             added_batch += epoch_end
-            after_batch = time.time()
+            print("ADDED BATCH", added_batch)
+
             print("---Time elapsed after {}th epoch: {}---".format(epoch, round(added_epoch, 3)))
 
     after_train = time.time()
