@@ -137,12 +137,16 @@ def build_lstm_model(epoch_count, batch_size):
 
     start = time.time()
 
+
     # batch
-    for j in range((len(training_data) - 1) // batch_size + 1):
+    for j in range((len(training_data)-1) // batch_size + 1):
 
         batch_start = j * batch_size
         batch_end = batch_start + batch_size
-        training_batch = training_data[batch_start : batch_end]
+        if batch_end < len(training_data): 
+            training_batch = training_data[batch_start : batch_end]
+        else:
+            training_batch = training_data[batch_start : len(training_data)]
 
         print("-----starting training-----")
 
@@ -152,7 +156,7 @@ def build_lstm_model(epoch_count, batch_size):
             start = time.time()
             do_an_echo(training_batch, model=gans, optimizer=optimizer, word_to_ix=word_to_ix)
         
-            for i in range(batch_start, batch_end):
+            for i in range(batch_start, batch_start+len(training_batch)):
                 with torch.no_grad():
                     print('-------training_data[', i, '][0]--------')
                     # print(training_data[i][0])
