@@ -2,7 +2,8 @@
 # - Models
 # - Pretransformed data
 
-import json,os
+import json
+import os
 from utils.NLP_utils import bio
 
 

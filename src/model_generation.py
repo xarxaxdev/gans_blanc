@@ -1,15 +1,7 @@
 ###Here will be the main script for generating the models
 import spacy
 import nltk
-
-###glove test added on 19.02. by yisheng### (mostly seem useless)
 import numpy as np
-# from scipy import spatial
-# import matplotlib.pyplot as plt
-# from sklearn.manifold import TSNE
-# import json
-
-#pytorch test by delfina, will need it whether we end up discarding spacy or not
 import torch
 import torch.autograd as autograd
 import torch.nn as nn
@@ -34,7 +26,7 @@ EMBEDDING_DIM = 5
 HIDDEN_DIM = 2
 
 
-# ent_to_ix = {"B": 0, "I": 1, "O": 2, START_TAG: 3, STOP_TAG: 4}
+# entity to index dictionary
 ent_to_ix = {
     "O": 0,
     START_TAG: 1,
@@ -90,16 +82,17 @@ def build_representation():
 
     print(f'{time.time()}-----READ DATA AND TRANSFORMED IT-----')
 
-    # should use embedding instead?
+    # build word to index dictionary
     word_to_ix = {}
     for sentence, tags in training_data:
         for word in sentence:
             if word not in word_to_ix:
                 word_to_ix[word] = len(word_to_ix)
+
     return training_data, word_to_ix
 
+
 def do_an_echo(training_data, model, optimizer, word_to_ix):
-    # training_data = training_data[:10] #DELETE
     for sentence, tags in training_data:
         # Step 1. Remember that Pytorch accumulates gradients.
         # We need to clear them out before each instance
@@ -137,8 +130,7 @@ def build_lstm_model(epoch_count, batch_size):
 
     start = time.time()
 
-
-    # batch
+    # prepare training batches
     for j in range((len(training_data)-1) // batch_size + 1):
 
         batch_start = j * batch_size
@@ -148,8 +140,8 @@ def build_lstm_model(epoch_count, batch_size):
         else:
             training_batch = training_data[batch_start : len(training_data)]
 
+        # training
         print("-----starting training-----")
-
 
         for epoch in range(0, epoch_count):
             print("---starting epoch {}---".format(epoch))
