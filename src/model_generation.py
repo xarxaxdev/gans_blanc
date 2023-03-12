@@ -76,11 +76,11 @@ ent_to_ix = {
 def build_representation():
 
     # load our training data
-    print(f'{time.time()}-----READING AND TRANSFORMING DATA-----')
+    print("-----Reading and transforming training data-----")
     raw_data = read_raw_data('NER_TRAIN_JUDGEMENT.json')
     training_data = build_training_data(raw_data)
 
-    print(f'{time.time()}-----DATA READ ADN TRANSFORMED-----')
+    print("-----Training data read and transformed-----")
 
     # build word to index dictionary
     word_to_ix = {}
@@ -92,7 +92,6 @@ def build_representation():
     return training_data, word_to_ix
 
 
-
 def create_emb_layer(weights_matrix, non_trainable=False):
     num_embeddings, embedding_dim = weights_matrix.size()
     emb_layer = nn.Embedding(num_embeddings, embedding_dim)
@@ -101,7 +100,6 @@ def create_emb_layer(weights_matrix, non_trainable=False):
         emb_layer.weight.requires_grad = False
 
     return emb_layer, num_embeddings, embedding_dim
-
 
 
 def do_an_echo(training_data, model, optimizer, word_to_ix):
@@ -128,19 +126,18 @@ def do_an_echo(training_data, model, optimizer, word_to_ix):
 
 
 
-def build_lstm_model(epoch_count, batch_size):
+def build_lstm_model(epoch_count, batch_size, lr):
     training_data, word_to_ix = build_representation()
 
     # preparing glove word embedding
-    print(f'{time.time()}-----LOADING GLOVE WORD EMBEDDING-----')
+    print("-----Loading Glove embeddings-----")
     glove = read_glove_vector('./src/glove/glove.6B.50d.txt')
     embedding_matrix = get_embedding_matrix(glove, word_to_ix)
     embedding_layer = create_emb_layer(torch.tensor(embedding_matrix))
-    print(f'{time.time()}-----GLOVE WORD EMBEDDING LOADED-----')
-
+    print("----Glove embeddings loaded-----")
 
     gans = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
-    optimizer = optim.SGD(gans.parameters(), lr=0.1, weight_decay=1e-4)
+    optimizer = optim.SGD(gans.parameters(), lr=lr, weight_decay=1e-4)
 
     # Check predictions before training
     #with torch.no_grad():
@@ -148,8 +145,9 @@ def build_lstm_model(epoch_count, batch_size):
         #precheck_tags = torch.tensor([ent_to_ix[t] for t in training_data[0][1]], dtype=torch.long)
         #print(gans(precheck_sent))
 
-    start = time.time()
+    before_train = time.time()
 
+    added_batch = 0
     # prepare training batches
     for j in range((len(training_data)-1) // batch_size + 1):
 
@@ -161,30 +159,37 @@ def build_lstm_model(epoch_count, batch_size):
             training_batch = training_data[batch_start : len(training_data)]
 
         # training
-        print("-----starting training-----")
+        print("-----Starting training-----")
 
-        for epoch in range(0, epoch_count):
-            print("---starting epoch {}---".format(epoch))
-            start = time.time()
+        added_epoch = 0
+
+        for epoch in range(1, epoch_count+1):
+            print("---Starting epoch {}---".format(epoch))
+            epoch_start = time.time()
+
             do_an_echo(training_batch, model=gans, optimizer=optimizer, word_to_ix=word_to_ix)
         
             for i in range(batch_start, batch_start+len(training_batch)):
                 with torch.no_grad():
-                    print('-------training_data[', i, '][0]--------')
+                    print('---training_data[' + str(i) + '][0]---')
                     # print(training_data[i][0])
                     precheck_sent = prepare_sequence(training_data[i][0], word_to_ix)
                     # print('-------precheck_sent--------')
                     # print(precheck_sent)
-                    print('-------y--------')
+                    print('---y---')
                     print(torch.tensor([ent_to_ix[t] for t in training_data[i][1]], dtype=torch.long))
-                    print('-------yhat--------')
+                    print('---yhat---')
                     print(gans(precheck_sent))
-            #epoch_time = time.time()
-            print("---time elapsed after {}th epoch: {}---".format(epoch, round(time.time() - start, 3)))
 
+            epoch_end = time.time() - epoch_start
+            added_epoch += epoch_end
+            added_batch += epoch_end
+            after_batch = time.time()
+            print("---Time elapsed after {}th epoch: {}---".format(epoch, round(added_epoch, 3)))
 
-    total = time.time()
-    print("-----finished training at {}-----".format(total))
+    after_train = time.time()
+    elapsed = after_train-before_train
+    print("-----Finished training at {}-----".format(elapsed))
 
     # Check predictions after training
     return gans

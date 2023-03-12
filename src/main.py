@@ -1,57 +1,66 @@
 import argparse
-import nltk
-
-from nltk.tree import Tree
-
 from model_generation import build_lstm_model
 from utils.IOfunctions import read_raw_data, build_training_data
 
-GRAMMAR_PATH = './data/atis-grammar-cnf.cfg'
-
-
-def main():
+def params():
     parser = argparse.ArgumentParser(
-        description='Main Project for ENR'
+        description='BiLSTM-CRF for ANLP Final Project'
     )
 
     parser.add_argument(
         '--bilstm_crf', dest='bilstm_crf',
-        help='blablabal',
-        action='store'
-    )
-    parser.add_argument(
-        '--roberta_test', dest='roberta_test',
-        help='blablabal',
-        action='store'
-    )
-    parser.add_argument(
-        '--glove_test', dest='glove_test',
-        help='blablabal',
-        action='store'
+        help='BiLSTM-CRF Model for Legal NER.',
+        action='store_true'
     )
 
-    args = parser.parse_args()
+    parser.add_argument(
+        "--epochs", dest="epochs",
+        help="number of epochs"
+    )
+
+    parser.add_argument(
+        "--batch", dest="batch",
+        help='batch size value'
+    )
+
+    parser.add_argument(
+        "--lr", dest="lr",
+        help='learning rate value'
+    )
+
+    return parser.parse_args()
+
+def main():
+    args = params()
+    epoch_count = int(args.epochs)
+    batch_size = int(args.batch)
+    lr = float(args.lr)
+    print("Training BiLSTM-CRF with parameters {} epochs, {} batch size, and {} learning rate.".format(epoch_count,
+                                                                                                       batch_size, lr))
+    model = build_lstm_model(epoch_count=epoch_count, batch_size=batch_size, lr=lr)
+
+if __name__ == '__main__':
+    main()
+
 
     #take argument value or default
     #preprocess_data = args.preprocess_data if args.preprocess_data else ''
 
-    if args.roberta_test:
-        print('-----testing roberta-----')
-        sentences = ['hello can i have some pizza',
-        'do you want some tea']
+    #if args.roberta_test:
+        #print('-----testing roberta-----')
+        #sentences = ['hello can i have some pizza',
+        #'do you want some tea']
 
-        model_generation.test_roberta(sentences)
+        #model_generation.test_roberta(sentences)
 
-    if args.glove_test:
-        print('-----testing glove-----')
-        sentences = ['hello can i have some pizza',
-        'do you want some tea']
+    #if args.glove_test:
+        #print('-----testing glove-----')
+        #sentences = ['hello can i have some pizza',
+        #'do you want some tea']
 
-        model_generation.test_glove(sentences)
+        #model_generation.test_glove(sentences)
 
-    if args.bilstm_crf != '':        
-        print('-----generating bilstm_crf-----')
-        model = build_lstm_model(100, 10) # epoch, batch size
+    #if args.bilstm_crf != '':
+        #print('-----generating bilstm_crf-----')
+        #model = build_lstm_model(epoch_count=epoch_count, batch_size=batch_size, lr=lr) # epoch, batch size
 
-if __name__ == "__main__":
-    main()
