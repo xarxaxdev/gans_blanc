@@ -9,7 +9,7 @@ import torch.optim as optim
 #from transformers import RobertaModel
 
 from utils.NLP_utils import *
-from utils.IOfunctions import read_raw_data, build_training_data
+from utils.IOfunctions import *
 from model.bilstm_crf  import BiLSTM_CRF
 
 import time
@@ -22,7 +22,7 @@ torch.manual_seed(1)
 START_TAG = "<START>"
 STOP_TAG = "<STOP>"
 
-EMBEDDING_DIM = 5
+# EMBEDDING_DIM = 50
 HIDDEN_DIM = 2
 
 
@@ -76,11 +76,11 @@ ent_to_ix = {
 def build_representation():
 
     # load our training data
-    print(f'{time.time()}-----READING DATA AND TRANSFORMING IT-----')
+    print(f'{time.time()}-----READING AND TRANSFORMING DATA-----')
     raw_data = read_raw_data('NER_TRAIN_JUDGEMENT.json')
     training_data = build_training_data(raw_data)
 
-    print(f'{time.time()}-----READ DATA AND TRANSFORMED IT-----')
+    print(f'{time.time()}-----DATA READ ADN TRANSFORMED-----')
 
     # build word to index dictionary
     word_to_ix = {}
@@ -90,6 +90,18 @@ def build_representation():
                 word_to_ix[word] = len(word_to_ix)
 
     return training_data, word_to_ix
+
+
+
+def create_emb_layer(weights_matrix, non_trainable=False):
+    num_embeddings, embedding_dim = weights_matrix.size()
+    emb_layer = nn.Embedding(num_embeddings, embedding_dim)
+    emb_layer.load_state_dict({'weight': weights_matrix})
+    if non_trainable:
+        emb_layer.weight.requires_grad = False
+
+    return emb_layer, num_embeddings, embedding_dim
+
 
 
 def do_an_echo(training_data, model, optimizer, word_to_ix):
@@ -115,11 +127,19 @@ def do_an_echo(training_data, model, optimizer, word_to_ix):
         optimizer.step()
 
 
+
 def build_lstm_model(epoch_count, batch_size):
     training_data, word_to_ix = build_representation()
 
-    #gans = BiLSTM_CRF(len(word_to_ix), 8, 2, 2, 0.25, ent_to_ix)
-    gans = BiLSTM_CRF(len(word_to_ix), ent_to_ix, EMBEDDING_DIM, HIDDEN_DIM)
+    # preparing glove word embedding
+    print(f'{time.time()}-----LOADING GLOVE WORD EMBEDDING-----')
+    glove = read_glove_vector('./src/glove/glove.6B.50d.txt')
+    embedding_matrix = get_embedding_matrix(glove, word_to_ix)
+    embedding_layer = create_emb_layer(torch.tensor(embedding_matrix))
+    print(f'{time.time()}-----GLOVE WORD EMBEDDING LOADED-----')
+
+
+    gans = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
     optimizer = optim.SGD(gans.parameters(), lr=0.1, weight_decay=1e-4)
 
     # Check predictions before training
@@ -170,32 +190,34 @@ def build_lstm_model(epoch_count, batch_size):
     return gans
 
 
-def test_glove(sentences):
-    embeddings_dict = {}
-    with open('src/glove/glove.6B.50d.txt', 'r', encoding='utf-8') as f:
-        for line in f:
-            values = line.split()
-            word = values[0]
-            vector = np.asarray(values[1:], 'float32')
-            embeddings_dict[word] = vector
-    
-    # print(embeddings_dict['the'])
-    # print(len(embeddings_dict['the']))
 
-    # test to trnasform a random sentence into glove embedding
-    sentence_tokenized = []
-    embedding = []
+
+# def test_glove(sentences):
+#     embeddings_dict = {}
+#     with open('src/glove/glove.6B.50d.txt', 'r', encoding='utf-8') as f:
+#         for line in f:
+#             values = line.split()
+#             word = values[0]
+#             vector = np.asarray(values[1:], 'float32')
+#             embeddings_dict[word] = vector
     
-    for sentence in sentences:
-        tokens = list(nltk.word_tokenize(sentence))
-        sentence_tokenized.append(tokens)
-        embedding.append([])
-        print(tokens)
-    for i in range(0, len(sentence_tokenized)):
-        for j in range(0, len(sentence_tokenized[i])):
-            embedding[i].append(embeddings_dict[sentence_tokenized[i][j]])
+#     # print(embeddings_dict['the'])
+#     # print(len(embeddings_dict['the']))
+
+#     # test to trnasform a random sentence into glove embedding
+#     sentence_tokenized = []
+#     embedding = []
     
-    print(embedding)
+#     for sentence in sentences:
+#         tokens = list(nltk.word_tokenize(sentence))
+#         sentence_tokenized.append(tokens)
+#         embedding.append([])
+#         print(tokens)
+#     for i in range(0, len(sentence_tokenized)):
+#         for j in range(0, len(sentence_tokenized[i])):
+#             embedding[i].append(embeddings_dict[sentence_tokenized[i][j]])
+    
+#     print(embedding)
 
 
 

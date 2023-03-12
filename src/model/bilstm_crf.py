@@ -12,17 +12,21 @@ STOP_TAG = "<STOP>"
 
 class BiLSTM_CRF(nn.Module):
     #def __init__(self, input_size, hidden_size, num_layers, embedding_dim, dropout, ent_to_ix, batch_first=True):
-    def __init__(self, input_size, ent_to_ix, embedding_dim, hidden_dim):
+    def __init__(self, input_size, ent_to_ix, embedding, hidden_dim):
         super(BiLSTM_CRF, self).__init__()
         self.input_size = input_size # number of expected features in the input x
+        self.word_embeds, num_embeddings, embedding_dim = embedding 
+        self.hidden_dim = hidden_dim
         #self.hidden_size = hidden_size #number of features in the hidden state h
         #self.num_layers = num_layers # number of recurrent layers
         #self.embedding_dim = embedding_dim
         #self.dropout = dropout
-        self.embedding_dim = embedding_dim
-        self.hidden_dim = hidden_dim
+        #self.embedding_dim = embedding_dim
 
-        self.word_embeds = nn.Embedding(input_size, embedding_dim)
+        # self.word_embeds = nn.Embedding(input_size, embedding_dim)
+        
+
+
         self.lstm = nn.LSTM(embedding_dim, hidden_dim // 2,
                             num_layers=1, bidirectional=True)
         self.ent_to_ix = ent_to_ix # define helper ent_to_ix

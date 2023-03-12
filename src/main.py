@@ -51,7 +51,7 @@ def main():
 
     if args.bilstm_crf != '':        
         print('-----generating bilstm_crf-----')
-        model = build_lstm_model(1, 10)
+        model = build_lstm_model(100, 10) # epoch, batch size
 
 if __name__ == "__main__":
     main()
