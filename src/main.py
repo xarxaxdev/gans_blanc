@@ -1,6 +1,8 @@
 import argparse
 from model_generation import build_lstm_model
-from utils.IOfunctions import read_raw_data, build_training_data
+from utils.IOfunctions import *
+from utils.NLP_utils import download_pretrained_model
+
 
 def params():
     parser = argparse.ArgumentParser(
@@ -10,6 +12,12 @@ def params():
     parser.add_argument(
         '--bilstm_crf', dest='bilstm_crf',
         help='BiLSTM-CRF Model for Legal NER.',
+        action='store_true'
+    )
+
+    parser.add_argument(
+        '--download_glove', dest='download_glove',
+        help='Downloads the glove WE needed for our models.',
         action='store_true'
     )
 
@@ -32,12 +40,21 @@ def params():
 
 def main():
     args = params()
-    epoch_count = int(args.epochs)
-    batch_size = int(args.batch)
-    lr = float(args.lr)
-    print("Training BiLSTM-CRF with parameters {} epochs, {} batch size, and {} learning rate.".format(epoch_count,
-                                                                                                       batch_size, lr))
-    model = build_lstm_model(epoch_count=epoch_count, batch_size=batch_size, lr=lr)
+    if args.download_glove:
+        url_glove = 'https://nlp.stanford.edu/data/glove.6B.zip'
+        filename = 'glove.6B' 
+        download_pretrained_model(url=url_glove, filename = filename)
+    if args.bilstm_crf:
+        epoch_count = int(args.epochs)
+        batch_size = int(args.batch)
+        lr = float(args.lr)
+        print("Training BiLSTM-CRF with parameters {} epochs, {} batch size, and {} learning rate.".format(epoch_count,
+                                                                                                        batch_size, lr))
+        model = build_lstm_model(epoch_count=epoch_count, batch_size=batch_size, lr=lr)
+        filename = f'bilstm_crf.e{epoch_count}.bs{batch_size}.lr{lr}'
+        save_model(model,filename)
+
+
 
 if __name__ == '__main__':
     main()

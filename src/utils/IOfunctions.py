@@ -5,6 +5,8 @@
 import json
 import os
 import numpy as np
+import torch
+
 from utils.NLP_utils import bio
 
 
@@ -28,11 +30,9 @@ def build_training_data(raw_data):
     
     return training_data
 
-
-def read_glove_vector(glove):  
-    
+def read_WE(path):      
     embeddings_dict = {}
-    with open(glove, 'r', encoding='utf-8') as f:
+    with open(path, 'r', encoding='utf-8') as f:
         for line in f:
             values = line.split()
             word = values[0]
@@ -40,7 +40,6 @@ def read_glove_vector(glove):
             embeddings_dict[word] = vector
     
     return embeddings_dict
-
 
 def get_embedding_matrix(embeddings_dict, word_to_ix):
     vocab_len = len(word_to_ix)
@@ -57,16 +56,13 @@ def get_embedding_matrix(embeddings_dict, word_to_ix):
     return embedding_matrix
 
 
-def write_preprocessed_representation(name, data):
-    pass
+def save_model(model, filename):
+    cur_path = os.path.split(os.path.realpath(__file__))[0]
+    project_path = os.path.split(cur_path)[0]
+    datafile = os.path.join(project_path,'generated_models',filename)
+    torch.save(model.state_dict(), datafile)
+    return True
 
+def load_model(filename):
+    return torch.load(filename)
 
-def read_preprocessed_representation():
-    pass
-
-
-def write_model():
-    pass
-
-def read_model():
-    pass

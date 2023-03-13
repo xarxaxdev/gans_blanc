@@ -130,8 +130,12 @@ def build_lstm_model(epoch_count, batch_size, lr):
     training_data, word_to_ix = build_representation()
 
     # preparing glove word embedding
+    filename = 'glove.6B.50d' 
+    project_path = os.path.split(os.path.realpath(__file__))[0]
+    datafile = os.path.join(project_path,'pretrained_models',f'{filename}.txt')
+
     print("-----Loading Glove embeddings-----")
-    glove = read_glove_vector('./src/glove/glove.6B.50d.txt')
+    glove = read_WE(datafile)
     embedding_matrix = get_embedding_matrix(glove, word_to_ix)
     embedding_layer = create_emb_layer(torch.tensor(embedding_matrix))
     print("----Glove embeddings loaded-----")
@@ -197,34 +201,6 @@ def build_lstm_model(epoch_count, batch_size, lr):
     return gans
 
 
-
-
-# def test_glove(sentences):
-#     embeddings_dict = {}
-#     with open('src/glove/glove.6B.50d.txt', 'r', encoding='utf-8') as f:
-#         for line in f:
-#             values = line.split()
-#             word = values[0]
-#             vector = np.asarray(values[1:], 'float32')
-#             embeddings_dict[word] = vector
-    
-#     # print(embeddings_dict['the'])
-#     # print(len(embeddings_dict['the']))
-
-#     # test to trnasform a random sentence into glove embedding
-#     sentence_tokenized = []
-#     embedding = []
-    
-#     for sentence in sentences:
-#         tokens = list(nltk.word_tokenize(sentence))
-#         sentence_tokenized.append(tokens)
-#         embedding.append([])
-#         print(tokens)
-#     for i in range(0, len(sentence_tokenized)):
-#         for j in range(0, len(sentence_tokenized[i])):
-#             embedding[i].append(embeddings_dict[sentence_tokenized[i][j]])
-    
-#     print(embedding)
 
 
 

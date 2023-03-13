@@ -3,7 +3,10 @@
 import torch
 
 from nltk.tokenize import word_tokenize
+import requests, zipfile, io
+from clint.textui import progress
 
+import os
 #roberta = torch.hub.load('pytorch/fairseq', 'roberta.large')
 #roberta.eval()  # disable dropout for evaluation
 
@@ -57,3 +60,23 @@ def bio(data):
     
     return (tokenized, tag)
 
+def download_pretrained_model(url, filename):
+    #this function replaces(creating it anew if neede) 
+    #the files for glove(zip + txt) 
+    cur_path = os.path.split(os.path.realpath(__file__))[0]
+    project_path = os.path.split(cur_path)[0]
+    datafile_zip = os.path.join(project_path,'pretrained_models',f'{filename}.zip')
+    datafile = os.path.join(project_path,'pretrained_models')
+    r = requests.get(url, stream=True)
+    print(f'----- Downloading file form {url}(this can take a while)----')
+    with open(datafile_zip, 'wb') as fd:
+        total_length = int(r.headers.get('content-length'))
+        chunk_size = 8192
+        for chunk in progress.bar(r.iter_content(chunk_size=chunk_size),expected_size=(total_length/chunk_size) + 1):
+            if chunk:
+                fd.write(chunk)
+                fd.flush()
+    print('-----Extracting glove pretrained zip...-----')
+    with zipfile.ZipFile(datafile_zip,'r') as z:
+        z.extractall(datafile)
+    
