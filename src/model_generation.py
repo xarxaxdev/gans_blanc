@@ -102,7 +102,7 @@ def create_emb_layer(weights_matrix, non_trainable=False):
     return emb_layer, num_embeddings, embedding_dim
 
 
-def do_an_echo(training_data, model, optimizer, word_to_ix):
+def gradient_descent(training_data, model, optimizer, word_to_ix):
     for sentence, tags in training_data:
         # Step 1. Remember that Pytorch accumulates gradients.
         # We need to clear them out before each instance
@@ -151,51 +151,48 @@ def build_lstm_model(epoch_count, batch_size, lr):
 
     before_train = time.time()
 
-    added_batch = 0
+    time_elapsed = 0
     # prepare training batches
-    for j in range((len(training_data)-1) // batch_size + 1):
 
-        batch_start = j * batch_size
-        batch_end = batch_start + batch_size
-        if batch_end < len(training_data): 
+
+ 
+    for epoch in range(1, epoch_count+1):
+        print("---Starting epoch {}---".format(epoch))
+        epoch_start = time.time()
+        total_batches = len(training_data) // batch_size + 1 
+        print(f'Total batches: {total_batches}')
+
+        for j in range(total_batches):
+            batch_start = j * batch_size
+            batch_end = batch_start + batch_size
+            
             training_batch = training_data[batch_start : batch_end]
-        else:
-            training_batch = training_data[batch_start : len(training_data)]
 
-        # training
-        print("-----Starting training-----")
+            # training
+            print(f"-----Starting batch num:{j}-----")
 
-        added_epoch = 0
-
-        for epoch in range(1, epoch_count+1):
-            print("---Starting epoch {}---".format(epoch))
-            epoch_start = time.time()
-
-            do_an_echo(training_batch, model=gans, optimizer=optimizer, word_to_ix=word_to_ix)
+            added_epoch = 0
+            gradient_descent(training_batch, model=gans, optimizer=optimizer, word_to_ix=word_to_ix)
         
             for i in range(batch_start, batch_start+len(training_batch)):
                 with torch.no_grad():
-                    print('---training_data[' + str(i) + '][0]---')
+                    #print('---training_data[' + str(i) + '][0]---')
                     # print(training_data[i][0])
                     precheck_sent = prepare_sequence(training_data[i][0], word_to_ix)
                     # print('-------precheck_sent--------')
                     # print(precheck_sent)
-                    print('---y---')
-                    print(torch.tensor([ent_to_ix[t] for t in training_data[i][1]], dtype=torch.long))
-                    print('---yhat---')
-                    print(gans(precheck_sent))
-
-            epoch_end = time.time() - epoch_start
-            added_epoch += epoch_end
-
-            added_batch += epoch_end
-            print("ADDED BATCH", added_batch)
-
-            print("---Time elapsed after {}th epoch: {}---".format(epoch, round(added_epoch, 3)))
-
-    after_train = time.time()
-    elapsed = after_train-before_train
-    print("-----Finished training at {}-----".format(elapsed))
+                    #print('---y---')
+                    #print(torch.tensor([ent_to_ix[t] for t in training_data[i][1]], dtype=torch.long))
+                    #print('---yhat---')
+                    #print(gans(precheck_sent))
+            elapsed_train = time.time() - before_train
+            print("-----Finished training in {}-----".format(elapsed_train))
+        
+        epoch_end = time.time() - epoch_start
+        added_epoch += epoch_end
+        time_elapsed += epoch_end
+        print("---Time elapsed after {}th epoch: {}---".format(epoch, round(added_epoch, 3)))
+        print("TIME ELAPSED:", total_elapsed)
 
     # Check predictions after training
     return gans

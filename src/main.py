@@ -52,7 +52,9 @@ def main():
                                                                                                         batch_size, lr))
         model = build_lstm_model(epoch_count=epoch_count, batch_size=batch_size, lr=lr)
         filename = f'bilstm_crf.e{epoch_count}.bs{batch_size}.lr{lr}'
+        print('----- Saving model... -----')
         save_model(model,filename)
+        print('----- Model saved. -----')
 
 
 
