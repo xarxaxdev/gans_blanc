@@ -139,7 +139,7 @@ def calculate_loss(model, x, y):
 
 
 class POS_dataset(Dataset):
-    def __init__(self,x, y):
+    def __init__(self, x, y):
         # Initialize data, download, etc.
         self.n_samples = len(x)
 
@@ -186,9 +186,6 @@ def build_lstm_model(epoch_count, batch_size, lr):
         y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
 
 
-
-    
-
     before_train = time.time()
 
     # prepare training batches
@@ -201,11 +198,18 @@ def build_lstm_model(epoch_count, batch_size, lr):
         total_batches = len(training_data) // batch_size + 1 
         print(f'Total batches: {total_batches}')
 
-        for j in range(0, batch_size):
+        # initial batch
+        training_batch = training_data[0 : batch_size]
+
+        for j in range(0, len(total_batches)):
+            
+            # update batch
             batch_start = j * batch_size
             batch_end = batch_start + batch_size
-            
-            training_batch = training_data[batch_start : batch_end]
+            if batch_end < len(training_data):
+                training_batch = training_data[batch_start : batch_end]
+            else:
+                training_batch = training_data[batch_start : len(training_data)]
 
             # training
             print(f"-----Starting batch num:{j}-----")
@@ -213,6 +217,7 @@ def build_lstm_model(epoch_count, batch_size, lr):
 
             elapsed_train = time.time() - before_train
             print("-----Finished training in {}-----".format(elapsed_train))
+            
         
         epoch_end = time.time() - epoch_start
         time_elapsed += epoch_end
