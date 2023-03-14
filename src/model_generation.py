@@ -207,11 +207,11 @@ def build_lstm_model(epoch_count, batch_size, lr):
             # update batch
             batch_start = j * batch_size
             batch_end = batch_start + batch_size
-            training_batch = training_data[batch_start : batch_end]
+            training_batch = list(zip(x,y))[batch_start : batch_end]
             
             # training
             print(f"-----Starting batch num:{j}-----")
-            gradient_descent(zip(x,y), model=gans, optimizer=optimizer, word_to_ix=word_to_ix)
+            gradient_descent(training_batch, model=gans, optimizer=optimizer, word_to_ix=word_to_ix)
 
             elapsed_train = time.time() - before_train
             print("-----Finished training in {}-----".format(elapsed_train))
