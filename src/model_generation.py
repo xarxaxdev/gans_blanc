@@ -7,6 +7,12 @@ import torch.autograd as autograd
 import torch.nn as nn
 import torch.optim as optim
 #from transformers import RobertaModel
+from torch.utils.data import DataLoader, Dataset, TensorDataset
+from sklearn.model_selection import KFold
+
+from tqdm import tqdm  # progress bar
+
+
 
 from utils.NLP_utils import *
 from utils.IOfunctions import *
@@ -61,6 +67,7 @@ ent_to_ix = {
     "I-CASE_NUMBER": 28,
     "I-WITNESS": 29,
     "I-OTHER_PERSON": 30,
+    "<PADDING>":31
 }
 
 
@@ -108,13 +115,8 @@ def gradient_descent(training_data, model, optimizer, word_to_ix):
         # We need to clear them out before each instance
         model.zero_grad()
 
-        # Step 2. Get our inputs ready for the network, that is,
-        # turn them into Tensors of word indices.
-        sentence_in = prepare_sequence(sentence, word_to_ix)
-        targets = torch.tensor([ent_to_ix[t] for t in tags], dtype=torch.long)
-
         # Step 3. Run our forward pass.
-        loss = model.neg_log_likelihood(sentence_in, targets)
+        loss = model.neg_log_likelihood(sentence, tags)
 
         # Step 4. Compute the loss, gradients, and update the parameters by
         # calling optimizer.step()
@@ -125,8 +127,41 @@ def gradient_descent(training_data, model, optimizer, word_to_ix):
         optimizer.step()
 
 
+def calculate_loss(model, x, y):
+    print("-----Calculating Validation Loss-----")
+    loss = 0.0
+    with torch.no_grad():
+        for i in range(len(x)):
+            loss += model.neg_log_likelihood(x[i], y[i]) 
+    print(f"-----Validation Loss is {loss}-----")
+
+    return loss
+
+
+class POS_dataset(Dataset):
+    def __init__(self,x, y):
+        # Initialize data, download, etc.
+        self.n_samples = len(x)
+
+        # here the first column is the class label, the rest are the features
+        self.x_data = x # size [n_samples, n_features]
+        self.y_data = y # size [n_samples, 1]
+
+    # support indexing such that dataset[i] can be used to get i-th sample
+    def __getitem__(self, index):
+        return self.x_data[index], self.y_data[index]
+
+    # we can call len(dataset) to return the size
+    def __len__(self):
+        return self.n_samples
+
+
 
 def build_lstm_model(epoch_count, batch_size, lr):
+
+    # we will store the validation loss after every epoch
+    validation_loss = []
+    # we prepare input sequences
     training_data, word_to_ix = build_representation()
 
     # preparing glove word embedding
@@ -138,31 +173,35 @@ def build_lstm_model(epoch_count, batch_size, lr):
     glove = read_WE(datafile)
     embedding_matrix = get_embedding_matrix(glove, word_to_ix)
     embedding_layer = create_emb_layer(torch.tensor(embedding_matrix))
-    print("----Glove embeddings loaded-----")
+    print("-----Glove embeddings loaded-----")
 
+
+    # prepare model components   
     gans = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
     optimizer = optim.SGD(gans.parameters(), lr=lr, weight_decay=1e-4)
+    x  = []
+    y  = []
+    for sentence,targets in training_data:
+        x.append(prepare_sequence(sentence, word_to_ix))
+        y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
 
-    # Check predictions before training
-    #with torch.no_grad():
-        #precheck_sent = prepare_sequence(training_data[0][0], word_to_ix)
-        #precheck_tags = torch.tensor([ent_to_ix[t] for t in training_data[0][1]], dtype=torch.long)
-        #print(gans(precheck_sent))
+
+
+    
 
     before_train = time.time()
 
-    time_elapsed = 0
     # prepare training batches
+    time_elapsed = 0
 
 
- 
     for epoch in range(1, epoch_count+1):
         print("---Starting epoch {}---".format(epoch))
         epoch_start = time.time()
         total_batches = len(training_data) // batch_size + 1 
         print(f'Total batches: {total_batches}')
 
-        for j in range(total_batches):
+        for j in range(0, batch_size):
             batch_start = j * batch_size
             batch_end = batch_start + batch_size
             
@@ -170,32 +209,19 @@ def build_lstm_model(epoch_count, batch_size, lr):
 
             # training
             print(f"-----Starting batch num:{j}-----")
+            gradient_descent(zip(x,y), model=gans, optimizer=optimizer, word_to_ix=word_to_ix)
 
-            added_epoch = 0
-            gradient_descent(training_batch, model=gans, optimizer=optimizer, word_to_ix=word_to_ix)
-        
-            for i in range(batch_start, batch_start+len(training_batch)):
-                with torch.no_grad():
-                    #print('---training_data[' + str(i) + '][0]---')
-                    # print(training_data[i][0])
-                    precheck_sent = prepare_sequence(training_data[i][0], word_to_ix)
-                    # print('-------precheck_sent--------')
-                    # print(precheck_sent)
-                    #print('---y---')
-                    #print(torch.tensor([ent_to_ix[t] for t in training_data[i][1]], dtype=torch.long))
-                    #print('---yhat---')
-                    #print(gans(precheck_sent))
             elapsed_train = time.time() - before_train
             print("-----Finished training in {}-----".format(elapsed_train))
         
         epoch_end = time.time() - epoch_start
-        added_epoch += epoch_end
         time_elapsed += epoch_end
         print("---Time elapsed after {}th epoch: {}---".format(epoch, round(added_epoch, 3)))
         print("TIME ELAPSED:", total_elapsed)
-
+        validation_loss.append(calculate_loss(gans, x, y))
+        
     # Check predictions after training
-    return gans
+    return gans, validation_loss
 
 
 
@@ -242,4 +268,27 @@ for tok in doc_1:
     print(doc_1._.trf_data.tensors)
     
 """
+"""
 
+    #####PADDING
+    # Determine maximum length
+    max_len = max([i.squeeze().numel() for i in x])
+    # pad all tensors to have same length
+    x = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in x]
+    y = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in y]
+    x = torch.stack(x)
+    y = torch.stack(y)
+    dataset = POS_dataset(x,y)
+    train_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False)
+    print(f'Batch size {batch_size}')
+    for batch_idx, (data, targets) in enumerate(tqdm(train_loader)):
+        #data = data.to(device=device).squeeze(1)
+        #targets = targets.to(device=device)
+        # forward
+        #print(f'data {data} data.shape {torch.Size(data)}')
+        scores = gans(data)
+        loss = gans.neg_log_likelihood(data, targets)
+        print(loss)
+        validation_loss.append(loss)
+
+#"""
