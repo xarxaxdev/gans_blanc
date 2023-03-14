@@ -15,9 +15,20 @@ tqdmn = tqdm.notebook.tqdm
 
 
 
-roberta_version = 'roberta-base'
-tokenizer = RobertaTokenizer.from_pretrained(roberta_version)
+class RoBERTaNer(nn.Module):
+    def __init__(self, num_labels):
+        super(RoBERTaNer, self).__init__()
+        self.roberta = RobertaModel.from_pretrained('roberta-base')
+        self.dropout = nn.Dropout(0.1)
+        self.classifier = nn.Linear(self.roberta.config.hidden_size, num_labels)
 
+    def forward(self, input_ids, attention_mask):
+        outputs = self.roberta(input_ids=input_ids, attention_mask=attention_mask)
+        last_hidden_state = outputs.last_hidden_state
+        pooled_output = last_hidden_state[:, 0, :]
+        pooled_output = self.dropout(pooled_output)
+        logits = self.classifier(pooled_output)
+        return logits
 
 
 
