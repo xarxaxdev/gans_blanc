@@ -2,7 +2,7 @@ import argparse
 from model_generation import *
 from utils.IOfunctions import *
 from utils.NLP_utils import *
-from model.roberta import build_roberta_model
+from model.roberta import *
 
 def params():
     parser = argparse.ArgumentParser(
@@ -63,11 +63,20 @@ def main():
         save_model(model,filename)
         print('----- Model saved. -----')
     if args.roberta:
+        epochs = int(args.epochs)
+        batch_size = int(args.batch)
+        lr = float(args.lr)
         training_data,word_to_ix = build_representation()
         #we get the untrained model
-        trained_data, model = build_roberta_model(training_data)
+        prepared_data, model = build_roberta_model_base(training_data)
         #we train it to our examples
-        train_model
+        model,validation_loss = train_model(model,prepared_data,epochs=epochs,batch_size = batch_size,lr=lr)
+        filename = f'roberta.e{epoch_count}.bs{batch_size}.lr{lr}'
+        print('----- Saving model... -----')
+        save_model(model,filename)
+        print('----- Model saved. -----')
+        
+
 
 
 if __name__ == '__main__':
