@@ -97,7 +97,7 @@ def to_encoding(row):
 
 def build_roberta_model_base(training_data):
     #print(training_data[0])
-    training_data = training_data[:4]
+    #training_data = training_data[:4]
     training_data = [{'sentence': i[0],'labels': i[1]} for i in training_data]
     training_data = {key: [d[key] for d in training_data] for key in training_data[0]}
     training_data = datasets.Dataset.from_dict(training_data)
