@@ -164,6 +164,7 @@ def build_lstm_model(epoch_count, batch_size, lr):
     # we prepare input sequences
     training_data, word_to_ix = build_representation()
 
+    #training_data = training_data[:100]
     # preparing glove word embedding
     filename = 'glove.6B.50d' 
     project_path = os.path.split(os.path.realpath(__file__))[0]
@@ -201,7 +202,7 @@ def build_lstm_model(epoch_count, batch_size, lr):
         # initial batch
         training_batch = training_data[0 : batch_size]
 
-        for j in range(0, len(total_batches)):
+        for j in range(total_batches):
             
             # update batch
             batch_start = j * batch_size
@@ -218,8 +219,8 @@ def build_lstm_model(epoch_count, batch_size, lr):
         
         epoch_end = time.time() - epoch_start
         time_elapsed += epoch_end
-        print("---Time elapsed after {}th epoch: {}---".format(epoch, round(added_epoch, 3)))
-        print("TIME ELAPSED:", total_elapsed)
+        print("---Time elapsed after {}th epoch: {}---".format(epoch, round(epoch_end, 3)))
+        print("TIME ELAPSED:", time_elapsed)
         validation_loss.append(calculate_loss(gans, x, y))
         
     # Check predictions after training
@@ -227,28 +228,6 @@ def build_lstm_model(epoch_count, batch_size, lr):
 
 
 
-
-
-def test_roberta(sentences):
-    # load one of the models listed at https://github.com/MartinoMensio/spacy-sentence-bert/
-    #nlp = spacy_sentence_bert.load_model('roberta-base-nli-stsb-mean-tokens')
-    nlp = nlp = spacy.load('en_core_web_trf')
-
-    # get two documents
-    doc_1 = nlp(sentences[0])
-    doc_2 = nlp(sentences[1])
-    # use the similarity method that is based on the vectors, on Doc, Span or Token
-    #print(doc_1.similarity(doc_2[0:7]))
-    print('------------doc1------------')
-    for tok in doc_1:
-        #print(tok.text, tok.pos_)
-        # continute
-        pass
-       
-    print('------------doc2------------')
-    for tok in doc_2:
-        print(tok.text, tok.pos_)
-        print(tok)
 
 
 """
@@ -270,6 +249,7 @@ for tok in doc_1:
     print(doc_1._.trf_data.tensors)
     
 """
+
 """
 
     #####PADDING
