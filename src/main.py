@@ -2,7 +2,7 @@ import argparse
 from model_generation import *
 from utils.IOfunctions import *
 from utils.NLP_utils import *
-
+from model.roberta import build_roberta_model
 
 def params():
     parser = argparse.ArgumentParser(
@@ -12,6 +12,12 @@ def params():
     parser.add_argument(
         '--bilstm_crf', dest='bilstm_crf',
         help='BiLSTM-CRF Model for Legal NER.',
+        action='store_true'
+    )
+
+    parser.add_argument(
+        '--roberta', dest='roberta',
+        help='Roberta Model for Legal NER.',
         action='store_true'
     )
 
@@ -56,7 +62,12 @@ def main():
         print('----- Saving model... -----')
         save_model(model,filename)
         print('----- Model saved. -----')
-
+    if args.roberta:
+        training_data,word_to_ix = build_representation()
+        #we get the untrained model
+        trained_data, model = build_roberta_model(training_data)
+        #we train it to our examples
+        train_model
 
 
 if __name__ == '__main__':
