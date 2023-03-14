@@ -81,6 +81,12 @@ class BiLSTM_CRF(nn.Module):
 
     def _get_lstm_features(self, sentence):
         self.hidden = self.init_hidden()
+        #How do feed multiple sentences here???
+        #w2emb = lambda x: self.word_embeds(x).view(len(x), 1, -1)
+        #print(sentence[0])
+        #print(w2emb(sentence[0]))
+        #assert(False)
+        #embeds_list = map() 
         embeds = self.word_embeds(sentence).view(len(sentence), 1, -1)
         lstm_out, self.hidden = self.BiLSTM(embeds, self.hidden)
         lstm_out = lstm_out.view(len(sentence), self.hidden_dim)

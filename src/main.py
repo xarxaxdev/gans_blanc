@@ -1,7 +1,7 @@
 import argparse
-from model_generation import build_lstm_model
+from model_generation import *
 from utils.IOfunctions import *
-from utils.NLP_utils import download_pretrained_model
+from utils.NLP_utils import *
 
 
 def params():
@@ -50,7 +50,7 @@ def main():
         lr = float(args.lr)
         print("Training BiLSTM-CRF with parameters {} epochs, {} batch size, and {} learning rate.".format(epoch_count,
                                                                                                         batch_size, lr))
-        model,validation_loss = build_lstm_model(epoch_count=epoch_count, batch_size=batch_size, lr=lr)
+        model,validation_loss = build_lstm_model_batch(epoch_count=epoch_count, batch_size=batch_size, lr=lr)
         print(validation_loss)
         filename = f'bilstm_crf.e{epoch_count}.bs{batch_size}.lr{lr}'
         print('----- Saving model... -----')
