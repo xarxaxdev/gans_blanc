@@ -87,8 +87,9 @@ def to_encoding(row):
     #print({ **encodings, 'labels': labels })
     #print('*****')
     #print(labels)
-    #labels = [ ent_to_ix[i] for i in labels]
+    labels = [ ent_to_ix[i] for i in labels]
     #labels = torch.as_tensor(labels)
+    labels = torch.from_numpy(np.asarray(labels))
     #print(labels)
     #assert(False)
     return { **encodings, 'labels': labels }
