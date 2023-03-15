@@ -70,13 +70,14 @@ def main():
         #we get the untrained model
         prepared_data, model = build_roberta_model_base(training_data)
         #we train it to our examples
-        model,validation_loss = train_model(model,prepared_data,epochs=epochs,batch_size = batch_size,lr=lr)
+        model,training_loss = train_model(model,prepared_data,epochs=epochs,batch_size = batch_size,lr=lr)
         filename = f'roberta.e{epoch_count}.bs{batch_size}.lr{lr}'
         print('----- Saving model... -----')
         save_model(model,filename)
         print('----- Model saved. -----')
-        
-
+        print('----- Saving model training loss... -----')
+        save_plot_loss(training_loss,filename)
+        print('----- Model training loss saved. -----')
 
 
 if __name__ == '__main__':

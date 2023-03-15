@@ -129,7 +129,7 @@ def train_model(model,dataset,epochs = 3,batch_size = 128,lr = 1e-5):
     # initialize the Adam optimizer (used for training/updating the model)
     optimizer = optim.AdamW(params=model.parameters(), lr=lr)
     train_data = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
-    validation_loss = []
+    training_loss = []
 
     #print(list(map(len, dataset['sentence'])))
     #print(list(map(len, dataset['attention_mask'])))
@@ -173,9 +173,22 @@ def train_model(model,dataset,epochs = 3,batch_size = 128,lr = 1e-5):
                 # store the loss value for visualization
                 #validation_loss.append(current_loss / 32)
                 #current_loss = 0
-        validation_loss.append(current_loss / dataset.num_rows)
+        training_loss.append(current_loss / dataset.num_rows)
         # update the model one last time for this epoch
         optimizer.step()
         optimizer.zero_grad()
     
-    return model,validation_loss
+    return model,training_loss
+
+def save_plot_loss(train_loss,filename):
+    epochs = len(train_loss)
+
+    fig, ax = plt.subplots(figsize=(10, 4))
+    # visualize the loss values
+    ax.plot(train_loss)
+    # set the labels
+    ax.set_ylabel('Loss')
+    ax.set_xlabel(f'{epochs} Epochs')
+    fig.tight_layout()
+    plt.savefig(f'plots/{filename}.png', bbox_inches='tight')
+    #plt.show()
