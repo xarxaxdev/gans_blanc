@@ -97,7 +97,7 @@ def to_encoding(row):
 
 def build_roberta_model_base(training_data):
     #print(training_data[0])
-    #training_data = training_data[:4]
+    #training_data = training_data[:8]
     training_data = [{'sentence': i[0],'labels': i[1]} for i in training_data]
     training_data = {key: [d[key] for d in training_data] for key in training_data[0]}
     training_data = datasets.Dataset.from_dict(training_data)
@@ -180,15 +180,3 @@ def train_model(model,dataset,epochs = 3,batch_size = 128,lr = 1e-5):
     
     return model,training_loss
 
-def save_plot_loss(train_loss,filename):
-    epochs = len(train_loss)
-
-    fig, ax = plt.subplots(figsize=(10, 4))
-    # visualize the loss values
-    ax.plot(train_loss)
-    # set the labels
-    ax.set_ylabel('Loss')
-    ax.set_xlabel(f'{epochs} Epochs')
-    fig.tight_layout()
-    plt.savefig(f'plots/{filename}.png', bbox_inches='tight')
-    #plt.show()

@@ -1,5 +1,6 @@
 import argparse
 from model_generation import *
+from model_evaluation import *
 from utils.IOfunctions import *
 from utils.NLP_utils import *
 from model.roberta import *
@@ -71,12 +72,12 @@ def main():
         prepared_data, model = build_roberta_model_base(training_data)
         #we train it to our examples
         model,training_loss = train_model(model,prepared_data,epochs=epochs,batch_size = batch_size,lr=lr)
-        filename = f'roberta.e{epoch_count}.bs{batch_size}.lr{lr}'
+        filename = f'roberta.e{epochs}.bs{batch_size}.lr{lr}'
         print('----- Saving model... -----')
         save_model(model,filename)
         print('----- Model saved. -----')
         print('----- Saving model training loss... -----')
-        save_plot_loss(training_loss,filename)
+        save_plot_train_loss(training_loss,filename)
         print('----- Model training loss saved. -----')
 
 
