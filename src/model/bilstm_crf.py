@@ -87,16 +87,18 @@ class BiLSTM_CRF(nn.Module):
         #print(w2emb(sentence[0]))
         #assert(False)
         #embeds_list = map() 
-        embeds = self.word_embeds(sentence).view(len(sentence), 1, -1)
+        # embeds = self.word_embeds(sentence).view(len(sentence), 1, -1)
+        embeds = self.word_embeds(sentence).view(1, 1, -1)
         lstm_out, self.hidden = self.BiLSTM(embeds, self.hidden)
-        lstm_out = lstm_out.view(len(sentence), self.hidden_dim)
+        # lstm_out = lstm_out.view(len(sentence), self.hidden_dim)
+        lstm_out = lstm_out.view(1, self.hidden_dim)
         lstm_feats = self.hidden2tag(lstm_out)
         return lstm_feats
 
     def _score_sentence(self, feats, tags):
         # Gives the score of a provided tag sequence
         score = torch.zeros(1)
-        tags = torch.cat([torch.tensor([self.ent_to_ix[START_TAG]], dtype=torch.long), tags])
+        tags = [torch.tensor([self.ent_to_ix[START_TAG]], dtype=torch.long), tags]
         for i, feat in enumerate(feats):
             score = score + \
                 self.transitions[tags[i + 1], tags[i]] + feat[tags[i + 1]]

@@ -180,12 +180,19 @@ def build_lstm_model(epoch_count, batch_size, lr):
     # prepare model components   
     gans = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
     optimizer = optim.SGD(gans.parameters(), lr=lr, weight_decay=1e-4)
+
+
     x  = []
     y  = []
     for sentence,targets in training_data:
         x.append(prepare_sequence(sentence, word_to_ix))
         y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
 
+    # Determine maximum length
+    max_len = max([i.squeeze().numel() for i in x])
+    # padding
+    x = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in x]
+    y = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in y]
 
     before_train = time.time()
 
@@ -199,16 +206,23 @@ def build_lstm_model(epoch_count, batch_size, lr):
         total_batches = len(training_data) // batch_size + 1 
         print(f'Total batches: {total_batches}')
 
-        # initial batch
-        training_batch = training_data[0 : batch_size]
 
         for j in range(total_batches):
             
             # update batch
             batch_start = j * batch_size
             batch_end = batch_start + batch_size
-            training_batch = list(zip(x,y))[batch_start : batch_end]
+            # training_batch = list(zip(x,y))[batch_start : batch_end]
             
+            # print(torch.cat(x[batch_start : batch_end]))
+
+            x_cat = torch.cat(x[batch_start : batch_end])
+            y_cat = torch.cat(y[batch_start : batch_end])
+            training_batch = list(zip(x_cat, y_cat))[batch_start : batch_end]
+            # print(training_batch)
+            # for i in len(training_batch):
+
+
             # training
             print(f"-----Starting batch num:{j}-----")
             gradient_descent(training_batch, model=gans, optimizer=optimizer, word_to_ix=word_to_ix)
