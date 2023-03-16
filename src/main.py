@@ -51,6 +51,8 @@ def main():
         url_glove = 'https://nlp.stanford.edu/data/glove.6B.zip'
         filename = 'glove.6B' 
         download_pretrained_model(url=url_glove, filename = filename)
+    
+    
     if args.bilstm_crf:
         epoch_count = int(args.epochs)
         batch_size = int(args.batch)
@@ -63,6 +65,8 @@ def main():
         print('----- Saving model... -----')
         save_model(model,filename)
         print('----- Model saved. -----')
+    
+    
     if args.roberta:
         epochs = int(args.epochs)
         batch_size = int(args.batch)

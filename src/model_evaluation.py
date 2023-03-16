@@ -1,5 +1,7 @@
 import os
-
+import torch
+from torchmetrics.classification import MulticlassF1Score
+from model_generation import ent_to_ix
 
 # visualization libraries
 import matplotlib.pyplot as plt
@@ -28,3 +30,8 @@ def save_plot_train_loss(train_loss,filename):
 
     plt.savefig(f'{datafile}.png', bbox_inches='tight')
     #plt.show()
+
+
+def compute_f1(prediction, target):
+    metric = MulticlassF1Score(num_classes=len(ent_to_ix))
+    return metric(prediction, target)
