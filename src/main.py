@@ -59,11 +59,11 @@ def main():
         lr = float(args.lr)
         print("Training BiLSTM-CRF with parameters {} epochs, {} batch size, and {} learning rate.".format(epoch_count,
                                                                                                         batch_size, lr))
-        model,validation_loss = build_lstm_model(epoch_count=epoch_count, batch_size=batch_size, lr=lr)
+        model, validation_loss = build_lstm_model(epoch_count=epoch_count, batch_size=batch_size, lr=lr)
         print(validation_loss)
         filename = f'bilstm_crf.e{epoch_count}.bs{batch_size}.lr{lr}'
         print('----- Saving model... -----')
-        save_model(model,filename)
+        save_model(model, filename)
         print('----- Model saved. -----')
     
     

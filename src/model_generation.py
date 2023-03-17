@@ -132,7 +132,7 @@ def calculate_loss(model, x, y):
     loss = 0.0
     with torch.no_grad():
         for i in range(len(x)):
-            loss += model.neg_log_likelihood(x[i], y[i]) 
+            loss += model.neg_log_likelihood(x[i], y[i])
     print(f"-----Validation Loss is {loss}-----")
 
     return loss
@@ -216,9 +216,9 @@ def build_lstm_model(epoch_count, batch_size, lr):
             
             # print(torch.cat(x[batch_start : batch_end]))
 
-            x_cat = torch.cat(x[batch_start : batch_end])
-            y_cat = torch.cat(y[batch_start : batch_end])
-            training_batch = list(zip(x_cat, y_cat))[batch_start : batch_end]
+            x_batch = torch.cat(x[batch_start : batch_end])
+            y_batch = torch.cat(y[batch_start : batch_end])
+            training_batch = list(zip(x_batch, y_batch))[batch_start : batch_end]
             # print(training_batch)
             # for i in len(training_batch):
 
@@ -235,7 +235,8 @@ def build_lstm_model(epoch_count, batch_size, lr):
         time_elapsed += epoch_end
         print("---Time elapsed after {}th epoch: {}---".format(epoch, round(epoch_end, 3)))
         print("TIME ELAPSED:", time_elapsed)
-        #validation_loss.append(calculate_loss(gans, x, y))
+
+        validation_loss.append(calculate_loss(gans, x_batch, y_batch))
         
     # Check predictions after training
     return gans, validation_loss
