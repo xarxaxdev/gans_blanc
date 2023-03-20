@@ -1,6 +1,6 @@
 import os
 import torch
-from torchmetrics.classification import MulticlassF1Score
+from torchmetrics.classification import MulticlassAccuracy, MulticlassPrecision, MulticlassRecall, MulticlassF1Score
 from model_generation import ent_to_ix
 from utils.IOfunctions import *
 from utils.NLP_utils import *
@@ -37,7 +37,19 @@ def save_plot_train_loss(train_loss,filename):
 
 
 def compute_f1(prediction, target):
-    metric = MulticlassF1Score(num_classes=len(ent_to_ix))
+    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average=None)
+    return metric(prediction, target)
+
+def compute_acc(prediction, target):
+    metric = MulticlassAccuracy(num_classes=len(ent_to_ix), average=None)
+    return metric(prediction, target)
+
+def compute_pre(prediction, target):
+    metric = MulticlassPrecision(num_classes=len(ent_to_ix), average=None)
+    return metric(prediction, target)
+
+def compute_rec(prediction, target):
+    metric = MulticlassRecall(num_classes=len(ent_to_ix), average=None)
     return metric(prediction, target)
 
 
@@ -71,8 +83,6 @@ def evaluate_model(model_path, data_path):
         x.append(prepare_sequence(sentence, word_to_ix))
         y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
 
-    print(x[0])
-
     # Determine maximum length
     max_len = max([i.squeeze().numel() for i in x])
     # padding
@@ -96,6 +106,10 @@ def evaluate_model(model_path, data_path):
     #             loss += model.neg_log_likelihood(x[i], y[i])
     # print(loss)
 
+    target = []
+    prediction = []
+    
+
     for j in range(total_batches):
         batch_start = j * batch_size
         batch_end = batch_start + batch_size
@@ -108,8 +122,7 @@ def evaluate_model(model_path, data_path):
         # test_batch = zip(x_batch, y_batch)[batch_start : batch_end]
         # test_batch = list(zip(x_batch, y_batch))[batch_start : batch_end]
 
-        target = []
-        prediction = []
+        
 
         with torch.no_grad():
             
@@ -140,8 +153,14 @@ def evaluate_model(model_path, data_path):
             # y_hat = model(x[i])
             # print(y_hat)
             
-        prediction = torch.tensor(prediction)
-        target = torch.tensor(target)
+    prediction = torch.tensor(prediction)
+    target = torch.tensor(target)
 
-        f1 = compute_f1(prediction, target)
-        print(f1)
+    f1 = compute_f1(prediction, target)
+    accuracy = compute_acc(prediction, target)
+    precision = compute_pre(prediction, target)
+    recall = compute_rec(prediction, target)
+    print(f1)
+    print(accuracy)
+    print(precision)
+    print(recall)
