@@ -71,6 +71,8 @@ def evaluate_model(model_path, data_path):
         x.append(prepare_sequence(sentence, word_to_ix))
         y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
 
+    print(x[0])
+
     # Determine maximum length
     max_len = max([i.squeeze().numel() for i in x])
     # padding
@@ -79,12 +81,48 @@ def evaluate_model(model_path, data_path):
 
     # print(x)
     # print(y)
-
     # x_total = torch.cat(x[0 : len(x)])
     # y_total = torch.cat(y[0 : len(y)])
+    optimizer = optim.SGD(model.parameters(), lr=0.05, weight_decay=1e-4)
+    batch_size = 10
+    total_batches = len(test_data) // batch_size + 1 
+    print(f'Total batches: {total_batches}')
 
-    for i in range(len(x)):
+
+    # loss = 0
+    # with torch.no_grad():
+            
+    #         for i in range(len(x)):
+    #             loss += model.neg_log_likelihood(x[i], y[i])
+    # print(loss)
+
+    for j in range(total_batches):
+        batch_start = j * batch_size
+        batch_end = batch_start + batch_size
+        # training_batch = list(zip(x,y))[batch_start : batch_end]
+            
+        # print(torch.cat(x[batch_start : batch_end]))
+        # print(x[batch_start : batch_end])
+        x_batch = torch.cat(x[batch_start : batch_end])
+        y_batch = torch.cat(y[batch_start : batch_end])
+        # test_batch = zip(x_batch, y_batch)[batch_start : batch_end]
+        # test_batch = list(zip(x_batch, y_batch))[batch_start : batch_end]
+
+        target = []
+        prediction = []
+
         with torch.no_grad():
+            
+
+            for i in range(len(x_batch)):
+                target.append(int(y_batch[i]))
+                feats = model._get_lstm_features(x_batch[i])
+                prediction.append(argmax(feats))
+                # y_hat = ar
+                # forward_score = model._forward_alg(feats)
+                # print(forward_score)
+
+
             # print('-------test_data[0][0]--------')
             # precheck_sent = prepare_sequence(x, word_to_ix)
             # print('-------precheck_sent--------')
@@ -94,11 +132,16 @@ def evaluate_model(model_path, data_path):
             # y = torch.tensor([ent_to_ix[t] for t in test_data[0][1]], dtype=torch.long)
             # print('-------yhat--------')
             # print(model(x))
-            print(x[i].shape)
+            # print(x[i].shape)
+
+            # y_hat = gradient_descent(test_batch, model, optimizer, word_to_ix)
+
+
+            # y_hat = model(x[i])
+            # print(y_hat)
             
-            y_hat = model(x[i])
-            
-            print(y_hat)
-    
-            f1 = compute_f1(y_hat, y[i])
-            print(f1)
+        prediction = torch.tensor(prediction)
+        target = torch.tensor(target)
+
+        f1 = compute_f1(prediction, target)
+        print(f1)

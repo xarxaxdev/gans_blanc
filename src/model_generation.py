@@ -67,6 +67,7 @@ ent_to_ix = {
     "I-CASE_NUMBER": 28,
     "I-WITNESS": 29,
     "I-OTHER_PERSON": 30,
+    
     "<PADDING>":31
 }
 
