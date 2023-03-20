@@ -29,6 +29,12 @@ def params():
     )
 
     parser.add_argument(
+        '--evaluate_model', dest='evaluate_model',
+        help='Evaluation of desired model with designated dataset.',
+        action='store_true'
+    )
+
+    parser.add_argument(
         "--epochs", dest="epochs",
         help="number of epochs"
     )
@@ -41,6 +47,16 @@ def params():
     parser.add_argument(
         "--lr", dest="lr",
         help='learning rate value'
+    )
+
+    parser.add_argument(
+        "--model", dest="model",
+        help='model to evaluate'
+    )
+
+    parser.add_argument(
+        "--test_data", dest="test_data",
+        help='data for model evaluation'
     )
 
     return parser.parse_args()
@@ -64,6 +80,7 @@ def main():
         filename = f'bilstm_crf.e{epoch_count}.bs{batch_size}.lr{lr}'
         print('----- Saving model... -----')
         save_model(model, filename)
+        save_plot_train_loss(validation_loss, filename)
         print('----- Model saved. -----')
     
     
@@ -71,7 +88,7 @@ def main():
         epochs = int(args.epochs)
         batch_size = int(args.batch)
         lr = float(args.lr)
-        training_data,word_to_ix = build_representation()
+        training_data, word_to_ix = build_representation()
         #we get the untrained model
         prepared_data, model = build_roberta_model_base(training_data)
         #we train it to our examples
@@ -83,6 +100,12 @@ def main():
         print('----- Saving model training loss... -----')
         save_plot_train_loss(training_loss,filename)
         print('----- Model training loss saved. -----')
+
+
+    if args.evaluate_model:
+        model = str(args.model)
+        test_data = str(args.test_data)
+        evaluate_model(model_path=model, data_path=test_data)
 
 
 if __name__ == '__main__':

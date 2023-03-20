@@ -125,6 +125,8 @@ def gradient_descent(training_data, model, optimizer, word_to_ix):
         #print(model.BiLSTM.weight)
         #assert(False)
         optimizer.step()
+    
+    
 
 
 def calculate_loss(model, x, y):
@@ -184,7 +186,7 @@ def build_lstm_model(epoch_count, batch_size, lr):
 
     x  = []
     y  = []
-    for sentence,targets in training_data:
+    for sentence, targets in training_data:
         x.append(prepare_sequence(sentence, word_to_ix))
         y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
 
@@ -215,7 +217,7 @@ def build_lstm_model(epoch_count, batch_size, lr):
             # training_batch = list(zip(x,y))[batch_start : batch_end]
             
             # print(torch.cat(x[batch_start : batch_end]))
-
+            # print(x[batch_start : batch_end])
             x_batch = torch.cat(x[batch_start : batch_end])
             y_batch = torch.cat(y[batch_start : batch_end])
             training_batch = list(zip(x_batch, y_batch))[batch_start : batch_end]
@@ -224,11 +226,12 @@ def build_lstm_model(epoch_count, batch_size, lr):
 
 
             # training
-            print(f"-----Starting batch num:{j}-----")
+            # print(f"-----Starting batch num:{j}-----")
             gradient_descent(training_batch, model=gans, optimizer=optimizer, word_to_ix=word_to_ix)
 
+
             elapsed_train = time.time() - before_train
-            print("-----Finished training in {}-----".format(elapsed_train))
+            # print("-----Finished training in {}-----".format(elapsed_train))
             
         
         epoch_end = time.time() - epoch_start

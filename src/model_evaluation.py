@@ -2,6 +2,10 @@ import os
 import torch
 from torchmetrics.classification import MulticlassF1Score
 from model_generation import ent_to_ix
+from utils.IOfunctions import *
+from utils.NLP_utils import *
+from model_generation import *
+from model.bilstm_crf import BiLSTM_CRF
 
 # visualization libraries
 import matplotlib.pyplot as plt
@@ -35,3 +39,66 @@ def save_plot_train_loss(train_loss,filename):
 def compute_f1(prediction, target):
     metric = MulticlassF1Score(num_classes=len(ent_to_ix))
     return metric(prediction, target)
+
+
+def evaluate_model(model_path, data_path):
+    
+    print("-----Initialsing model-----")
+    # model initialisation
+    training_data, word_to_ix = build_representation()
+    
+    # update word to ix
+    raw_data = read_raw_data(data_path)
+    test_data = build_training_data(raw_data)
+    for sentence, tags in test_data:
+        for word in sentence:
+            if word not in word_to_ix:
+                word_to_ix[word] = len(word_to_ix)
+    
+    glove = read_WE('src/pretrained_models/glove.6B.50d.txt')
+    embedding_matrix = get_embedding_matrix(glove, word_to_ix)
+    embedding_layer = create_emb_layer(torch.tensor(embedding_matrix))
+
+    bilstm_crf = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
+    bilstm_crf.load_state_dict(torch.load(model_path))
+    model = bilstm_crf.eval()
+    print("-----Model initialised-----")
+
+
+    x  = []
+    y  = []
+    for sentence,targets in test_data:
+        x.append(prepare_sequence(sentence, word_to_ix))
+        y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
+
+    # Determine maximum length
+    max_len = max([i.squeeze().numel() for i in x])
+    # padding
+    x = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in x]
+    y = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in y]
+
+    # print(x)
+    # print(y)
+
+    # x_total = torch.cat(x[0 : len(x)])
+    # y_total = torch.cat(y[0 : len(y)])
+
+    for i in range(len(x)):
+        with torch.no_grad():
+            # print('-------test_data[0][0]--------')
+            # precheck_sent = prepare_sequence(x, word_to_ix)
+            # print('-------precheck_sent--------')
+            # print(precheck_sent)
+            # print('-------y--------')
+            # print(torch.tensor([ent_to_ix[t] for t in test_data[0][1]], dtype=torch.long))
+            # y = torch.tensor([ent_to_ix[t] for t in test_data[0][1]], dtype=torch.long)
+            # print('-------yhat--------')
+            # print(model(x))
+            print(x[i].shape)
+            
+            y_hat = model(x[i])
+            
+            print(y_hat)
+    
+            f1 = compute_f1(y_hat, y[i])
+            print(f1)

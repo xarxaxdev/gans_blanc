@@ -25,7 +25,7 @@ def build_training_data(raw_data):
     training_data = []
 
     for i in range(0, len(raw_data)):
-        training_data.append( bio(raw_data[i]))
+        training_data.append(bio(raw_data[i]))
         # print(training_data[i])
     
     return training_data
@@ -59,7 +59,7 @@ def get_embedding_matrix(embeddings_dict, word_to_ix):
 def save_model(model, filename):
     cur_path = os.path.split(os.path.realpath(__file__))[0]
     project_path = os.path.split(cur_path)[0]
-    datafile = os.path.join(project_path,'generated_models',filename)
+    datafile = os.path.join(project_path, 'generated_models', filename)
     torch.save(model.state_dict(), datafile)
     return True
 
