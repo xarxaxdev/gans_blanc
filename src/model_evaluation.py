@@ -71,9 +71,10 @@ def evaluate_model(model_path, data_path):
     embedding_matrix = get_embedding_matrix(glove, word_to_ix)
     embedding_layer = create_emb_layer(torch.tensor(embedding_matrix))
 
-    bilstm_crf = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
-    bilstm_crf.load_state_dict(torch.load(model_path))
-    model = bilstm_crf.eval()
+    model = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
+    model.load_state_dict(torch.load(model_path))
+    model.eval()
+    # model = bilstm_crf.eval()
     print("-----Model initialised-----")
 
 
@@ -96,7 +97,7 @@ def evaluate_model(model_path, data_path):
     optimizer = optim.SGD(model.parameters(), lr=0.05, weight_decay=1e-4)
     batch_size = 10
     total_batches = len(test_data) // batch_size + 1 
-    print(f'Total batches: {total_batches}')
+    # print(f'Total batches: {total_batches}')
 
 
     # loss = 0
@@ -108,7 +109,6 @@ def evaluate_model(model_path, data_path):
 
     target = []
     prediction = []
-    
 
     for j in range(total_batches):
         batch_start = j * batch_size
@@ -122,18 +122,25 @@ def evaluate_model(model_path, data_path):
         # test_batch = zip(x_batch, y_batch)[batch_start : batch_end]
         # test_batch = list(zip(x_batch, y_batch))[batch_start : batch_end]
 
-        
+        print(j)
 
         with torch.no_grad():
-            
-
+            # print(len(x_batch))
             for i in range(len(x_batch)):
                 target.append(int(y_batch[i]))
-                feats = model._get_lstm_features(x_batch[i])
-                prediction.append(argmax(feats))
+                # print(model(x_batch[i]))
+                
+                seq, tag = model.forward(x_batch[i])
+                # feats = model._get_lstm_features(x_batch[i])
+                # viterbi = model._viterbi_decode(feats)
+                # forward_score = model._forward_alg(feats)
+                # print(viterbi)
+                # print(feats)
+                prediction.append(tag[0])
                 # y_hat = ar
                 # forward_score = model._forward_alg(feats)
                 # print(forward_score)
+                # print(i)
 
 
             # print('-------test_data[0][0]--------')
@@ -152,9 +159,10 @@ def evaluate_model(model_path, data_path):
 
             # y_hat = model(x[i])
             # print(y_hat)
-            
+    # print(prediction)
     prediction = torch.tensor(prediction)
     target = torch.tensor(target)
+    # print(prediction)
 
     f1 = compute_f1(prediction, target)
     accuracy = compute_acc(prediction, target)
@@ -164,3 +172,7 @@ def evaluate_model(model_path, data_path):
     print(accuracy)
     print(precision)
     print(recall)
+    print(len(target))
+    print(len(prediction))
+    print(target[100:300])
+    print(prediction[100:300])
