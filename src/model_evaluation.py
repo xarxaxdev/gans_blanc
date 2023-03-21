@@ -62,25 +62,28 @@ def evaluate_model(model_path, data_path):
     # update word to ix
     raw_data = read_raw_data(data_path)
     test_data = build_training_data(raw_data)
+
     for sentence, tags in test_data:
         for word in sentence:
             if word not in word_to_ix:
                 word_to_ix[word] = len(word_to_ix)
     
-    glove = read_WE('src/pretrained_models/glove.6B.50d.txt')
-    embedding_matrix = get_embedding_matrix(glove, word_to_ix)
-    embedding_layer = create_emb_layer(torch.tensor(embedding_matrix))
+    # glove = read_WE('src/pretrained_models/glove.6B.50d.txt')
+    # embedding_matrix = get_embedding_matrix(glove, word_to_ix)
+    # embedding_layer = create_emb_layer(torch.tensor(embedding_matrix))
 
     model = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
     model.load_state_dict(torch.load(model_path))
     model.eval()
+    # model = torch.load(model_path)
+    # model.eval()
     # model = bilstm_crf.eval()
     print("-----Model initialised-----")
 
 
     x  = []
     y  = []
-    for sentence,targets in test_data:
+    for sentence, targets in test_data:
         x.append(prepare_sequence(sentence, word_to_ix))
         y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
 
@@ -94,8 +97,9 @@ def evaluate_model(model_path, data_path):
     # print(y)
     # x_total = torch.cat(x[0 : len(x)])
     # y_total = torch.cat(y[0 : len(y)])
-    optimizer = optim.SGD(model.parameters(), lr=0.05, weight_decay=1e-4)
-    batch_size = 10
+    # optimizer = optim.SGD(model.parameters(), lr=0.05, weight_decay=1e-4)
+    batch = model_path.split(".")[2]
+    batch_size = int("".join(list(filter(str.isdigit, batch))))
     total_batches = len(test_data) // batch_size + 1 
     # print(f'Total batches: {total_batches}')
 
