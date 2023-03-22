@@ -72,35 +72,61 @@ def evaluate_model(model_path, data_path):
     # embedding_matrix = get_embedding_matrix(glove, word_to_ix)
     # embedding_layer = create_emb_layer(torch.tensor(embedding_matrix))
 
-    model = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
-    model.load_state_dict(torch.load(model_path))
-    model.eval()
-    # model = torch.load(model_path)
+    # model = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
+    # model.load_state_dict(torch.load(model_path))
     # model.eval()
+    model = torch.load(model_path)
+    model.eval()
     # model = bilstm_crf.eval()
     print("-----Model initialised-----")
 
 
-    x  = []
-    y  = []
+
+    x = []
+    y = []
+    y_hat = []
     for sentence, targets in test_data:
         x.append(prepare_sequence(sentence, word_to_ix))
         y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
 
-    # Determine maximum length
-    max_len = max([i.squeeze().numel() for i in x])
-    # padding
-    x = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in x]
-    y = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in y]
+
+    batch = model_path.split(".")[2]
+    batch_size = int("".join(list(filter(str.isdigit, batch))))
+    total_batches = len(test_data) // batch_size + 1 
+    
+    print("-----Running through test data-----")
+
+    for i in range(len(x)):
+        y_hat.append(torch.tensor(model(x[i])[1]))
+
+
+    # dataset = POS_dataset(x,y)
+    # train_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False)
+
+
+    # print(f'Batch size {batch_size}')
+    # for batch_idx, (data, targets) in enumerate(tqdm(train_loader)):
+    #     #data = data.to(device=device).squeeze(1)
+    #     #targets = targets.to(device=device)
+    #     # forward
+    #     print(f'data {data} data.shape {data.size()}')
+    #     print(f'targets {targets} data.shape {targets.size()}')
+    #     scores = model(data)
+    #     print(scores)
+    # # Determine maximum length
+    # max_len = max([i.squeeze().numel() for i in x])
+    # # padding
+    # x = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in x]
+    # y = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in y]
 
     # print(x)
     # print(y)
     # x_total = torch.cat(x[0 : len(x)])
     # y_total = torch.cat(y[0 : len(y)])
     # optimizer = optim.SGD(model.parameters(), lr=0.05, weight_decay=1e-4)
-    batch = model_path.split(".")[2]
-    batch_size = int("".join(list(filter(str.isdigit, batch))))
-    total_batches = len(test_data) // batch_size + 1 
+    # batch = model_path.split(".")[2]
+    # batch_size = int("".join(list(filter(str.isdigit, batch))))
+    # total_batches = len(test_data) // batch_size + 1 
     # print(f'Total batches: {total_batches}')
 
 
@@ -111,36 +137,45 @@ def evaluate_model(model_path, data_path):
     #             loss += model.neg_log_likelihood(x[i], y[i])
     # print(loss)
 
-    target = []
-    prediction = []
+    # target = []
+    # prediction = []
 
-    for j in range(total_batches):
-        batch_start = j * batch_size
-        batch_end = batch_start + batch_size
+    # for j in range(total_batches):
+    #     batch_start = j * batch_size
+    #     batch_end = batch_start + batch_size
         # training_batch = list(zip(x,y))[batch_start : batch_end]
             
         # print(torch.cat(x[batch_start : batch_end]))
         # print(x[batch_start : batch_end])
-        x_batch = torch.cat(x[batch_start : batch_end])
-        y_batch = torch.cat(y[batch_start : batch_end])
-        # test_batch = zip(x_batch, y_batch)[batch_start : batch_end]
+        # x_batch = torch.cat(x[batch_start : batch_end])
+        # y_batch = torch.cat(y[batch_start : batch_end])
         # test_batch = list(zip(x_batch, y_batch))[batch_start : batch_end]
+        # # test_batch = zip(x_batch, y_batch)[batch_start : batch_end]
+        # print(test_batch)
+        # print(j)
 
-        print(j)
+        # with torch.no_grad():
+        #     # print(len(x_batch))
 
-        with torch.no_grad():
-            # print(len(x_batch))
-            for i in range(len(x_batch)):
-                target.append(int(y_batch[i]))
-                # print(model(x_batch[i]))
+        #     for sentence, tags in test_batch:
+        #         # loss = model.neg_log_likelihood(sentence, tags)
+        #         feats = model._get_lstm_features(sentence)
+        #         print(feats)
+        #         score, tag = model._viterbi_decode(feats)
+        #         print(score, tag)
+
+
+        #     for i in range(len(x_batch)):
+        #         target.append(int(y_batch[i]))
+        #         # print(model(x_batch[i]))
                 
-                seq, tag = model.forward(x_batch[i])
-                # feats = model._get_lstm_features(x_batch[i])
-                # viterbi = model._viterbi_decode(feats)
-                # forward_score = model._forward_alg(feats)
-                # print(viterbi)
-                # print(feats)
-                prediction.append(tag[0])
+        #         seq, tag = model.forward(x_batch[i])
+        #         # feats = model._get_lstm_features(x_batch[i])
+        #         # viterbi = model._viterbi_decode(feats)
+        #         # forward_score = model._forward_alg(feats)
+        #         # print(viterbi)
+        #         # print(feats)
+        #         prediction.append(tag[0])
                 # y_hat = ar
                 # forward_score = model._forward_alg(feats)
                 # print(forward_score)
@@ -164,9 +199,10 @@ def evaluate_model(model_path, data_path):
             # y_hat = model(x[i])
             # print(y_hat)
     # print(prediction)
-    prediction = torch.tensor(prediction)
-    target = torch.tensor(target)
-    # print(prediction)
+    prediction = torch.cat(y_hat)
+    target = torch.cat(y)
+
+    print("-----Computing scores-----")
 
     f1 = compute_f1(prediction, target)
     accuracy = compute_acc(prediction, target)
@@ -176,7 +212,147 @@ def evaluate_model(model_path, data_path):
     print(accuracy)
     print(precision)
     print(recall)
-    print(len(target))
-    print(len(prediction))
-    print(target[100:300])
-    print(prediction[100:300])
+    # print(len(target))
+    # print(len(prediction))
+    # print(target[100:300])
+    # print(prediction[100:300])
+
+
+
+# def evaluate_model(model_path, data_path):
+    
+    # print("-----Initialsing model-----")
+    # # model initialisation
+    # training_data, word_to_ix = build_representation()
+    
+    # # update word to ix
+    # raw_data = read_raw_data(data_path)
+    # test_data = build_training_data(raw_data)
+
+    # # for sentence, tags in test_data:
+    # #     for word in sentence:
+    # #         if word not in word_to_ix:
+    # #             word_to_ix[word] = len(word_to_ix)
+    
+    # # glove = read_WE('src/pretrained_models/glove.6B.50d.txt')
+    # # embedding_matrix = get_embedding_matrix(glove, word_to_ix)
+    # # embedding_layer = create_emb_layer(torch.tensor(embedding_matrix))
+
+    # # model = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
+    # # model.load_state_dict(torch.load(model_path))
+    # # model.eval()
+    # model = torch.load(model_path)
+    # model.eval()
+    # # model = bilstm_crf.eval()
+    # print("-----Model initialised-----")
+
+
+
+    # x  = []
+    # y  = []
+    # for sentence, targets in test_data:
+    #     x.append(prepare_sequence(sentence, word_to_ix))
+    #     y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
+
+    # # Determine maximum length
+    # max_len = max([i.squeeze().numel() for i in x])
+    # # padding
+    # x = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in x]
+    # y = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in y]
+
+    # # print(x)
+    # # print(y)
+    # # x_total = torch.cat(x[0 : len(x)])
+    # # y_total = torch.cat(y[0 : len(y)])
+    # # optimizer = optim.SGD(model.parameters(), lr=0.05, weight_decay=1e-4)
+    # batch = model_path.split(".")[2]
+    # batch_size = int("".join(list(filter(str.isdigit, batch))))
+    # total_batches = len(test_data) // batch_size + 1 
+    # # print(f'Total batches: {total_batches}')
+
+
+    # # loss = 0
+    # # with torch.no_grad():
+            
+    # #         for i in range(len(x)):
+    # #             loss += model.neg_log_likelihood(x[i], y[i])
+    # # print(loss)
+
+    # target = []
+    # prediction = []
+
+    # for j in range(total_batches):
+    #     batch_start = j * batch_size
+    #     batch_end = batch_start + batch_size
+    #     # training_batch = list(zip(x,y))[batch_start : batch_end]
+            
+    #     # print(torch.cat(x[batch_start : batch_end]))
+    #     # print(x[batch_start : batch_end])
+    #     x_batch = torch.cat(x[batch_start : batch_end])
+    #     y_batch = torch.cat(y[batch_start : batch_end])
+    #     test_batch = list(zip(x_batch, y_batch))[batch_start : batch_end]
+    #     # test_batch = zip(x_batch, y_batch)[batch_start : batch_end]
+    #     print(test_batch)
+    #     print(j)
+
+    #     with torch.no_grad():
+    #         # print(len(x_batch))
+
+    #         for sentence, tags in test_batch:
+    #             # loss = model.neg_log_likelihood(sentence, tags)
+    #             feats = model._get_lstm_features(sentence)
+    #             print(feats)
+    #             score, tag = model._viterbi_decode(feats)
+    #             print(score, tag)
+
+
+    #         for i in range(len(x_batch)):
+    #             target.append(int(y_batch[i]))
+    #             # print(model(x_batch[i]))
+                
+    #             seq, tag = model.forward(x_batch[i])
+    #             # feats = model._get_lstm_features(x_batch[i])
+    #             # viterbi = model._viterbi_decode(feats)
+    #             # forward_score = model._forward_alg(feats)
+    #             # print(viterbi)
+    #             # print(feats)
+    #             prediction.append(tag[0])
+    #             # y_hat = ar
+    #             # forward_score = model._forward_alg(feats)
+    #             # print(forward_score)
+    #             # print(i)
+
+
+    #         # print('-------test_data[0][0]--------')
+    #         # precheck_sent = prepare_sequence(x, word_to_ix)
+    #         # print('-------precheck_sent--------')
+    #         # print(precheck_sent)
+    #         # print('-------y--------')
+    #         # print(torch.tensor([ent_to_ix[t] for t in test_data[0][1]], dtype=torch.long))
+    #         # y = torch.tensor([ent_to_ix[t] for t in test_data[0][1]], dtype=torch.long)
+    #         # print('-------yhat--------')
+    #         # print(model(x))
+    #         # print(x[i].shape)
+
+    #         # y_hat = gradient_descent(test_batch, model, optimizer, word_to_ix)
+
+
+    #         # y_hat = model(x[i])
+    #         # print(y_hat)
+    # # print(prediction)
+    # prediction = torch.tensor(prediction)
+    # target = torch.tensor(target)
+    # # print(prediction)
+
+    # f1 = compute_f1(prediction, target)
+    # accuracy = compute_acc(prediction, target)
+    # precision = compute_pre(prediction, target)
+    # recall = compute_rec(prediction, target)
+    # print(f1)
+    # print(accuracy)
+    # print(precision)
+    # print(recall)
+    # print(len(target))
+    # print(len(prediction))
+    # print(target[100:300])
+    # print(prediction[100:300])

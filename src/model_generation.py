@@ -183,19 +183,12 @@ def build_lstm_model(epoch_count, batch_size, lr):
     # prepare model components   
     gans = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
     optimizer = optim.SGD(gans.parameters(), lr=lr, weight_decay=1e-4)
-
-
     x  = []
     y  = []
-    for sentence, targets in training_data:
+    for sentence,targets in training_data:
         x.append(prepare_sequence(sentence, word_to_ix))
         y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
 
-    # Determine maximum length
-    max_len = max([i.squeeze().numel() for i in x])
-    # padding
-    x = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in x]
-    y = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in y]
 
     before_train = time.time()
 
@@ -209,41 +202,119 @@ def build_lstm_model(epoch_count, batch_size, lr):
         total_batches = len(training_data) // batch_size + 1 
         print(f'Total batches: {total_batches}')
 
+        # initial batch
+        training_batch = training_data[0 : batch_size]
 
         for j in range(total_batches):
             
             # update batch
             batch_start = j * batch_size
             batch_end = batch_start + batch_size
-            # training_batch = list(zip(x,y))[batch_start : batch_end]
+            training_batch = list(zip(x,y))[batch_start : batch_end]
             
-            # print(torch.cat(x[batch_start : batch_end]))
-            # print(x[batch_start : batch_end])
-            x_batch = torch.cat(x[batch_start : batch_end])
-            y_batch = torch.cat(y[batch_start : batch_end])
-            training_batch = list(zip(x_batch, y_batch))[batch_start : batch_end]
-            # print(training_batch)
-            # for i in len(training_batch):
-
-
             # training
-            # print(f"-----Starting batch num:{j}-----")
+            print(f"-----Starting batch num:{j}-----")
             gradient_descent(training_batch, model=gans, optimizer=optimizer, word_to_ix=word_to_ix)
 
-
             elapsed_train = time.time() - before_train
-            # print("-----Finished training in {}-----".format(elapsed_train))
+            print("-----Finished training in {}-----".format(elapsed_train))
             
         
         epoch_end = time.time() - epoch_start
         time_elapsed += epoch_end
         print("---Time elapsed after {}th epoch: {}---".format(epoch, round(epoch_end, 3)))
         print("TIME ELAPSED:", time_elapsed)
-
-        validation_loss.append(calculate_loss(gans, x_batch, y_batch))
+        validation_loss.append(calculate_loss(gans, x, y))
         
     # Check predictions after training
     return gans, validation_loss
+
+
+# def build_lstm_model(epoch_count, batch_size, lr):
+
+#     # we will store the validation loss after every epoch
+#     validation_loss = []
+#     # we prepare input sequences
+#     training_data, word_to_ix = build_representation()
+
+#     #training_data = training_data[:100]
+#     # preparing glove word embedding
+#     filename = 'glove.6B.50d' 
+#     project_path = os.path.split(os.path.realpath(__file__))[0]
+#     datafile = os.path.join(project_path,'pretrained_models',f'{filename}.txt')
+
+#     print("-----Loading Glove embeddings-----")
+#     glove = read_WE(datafile)
+#     embedding_matrix = get_embedding_matrix(glove, word_to_ix)
+#     embedding_layer = create_emb_layer(torch.tensor(embedding_matrix))
+#     print("-----Glove embeddings loaded-----")
+
+
+#     # prepare model components   
+#     gans = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
+#     optimizer = optim.SGD(gans.parameters(), lr=lr, weight_decay=1e-4)
+
+
+#     x  = []
+#     y  = []
+#     for sentence, targets in training_data:
+#         x.append(prepare_sequence(sentence, word_to_ix))
+#         y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
+
+#     # Determine maximum length
+#     max_len = max([i.squeeze().numel() for i in x])
+#     # padding
+#     x = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in x]
+#     y = [torch.nn.functional.pad(i, pad=(0, max_len - i.numel()), mode='constant', value=0) for i in y]
+
+#     before_train = time.time()
+#     # print(x[0])
+#     # print(y[0])
+#     # prepare training batches
+#     time_elapsed = 0
+
+
+#     for epoch in range(1, epoch_count+1):
+#         print("---Starting epoch {}---".format(epoch))
+#         epoch_start = time.time()
+#         total_batches = len(training_data) // batch_size + 1 
+#         print(f'Total batches: {total_batches}')
+
+
+#         for j in range(total_batches):
+            
+#             # update batch
+#             batch_start = j * batch_size
+#             batch_end = batch_start + batch_size
+#             # training_batch = list(zip(x,y))[batch_start : batch_end]
+            
+#             # print(torch.cat(x[batch_start : batch_end]))
+#             # print(x[batch_start : batch_end])
+#             x_batch = torch.cat(x[batch_start : batch_end])
+#             y_batch = torch.cat(y[batch_start : batch_end])
+#             training_batch = list(zip(x_batch, y_batch))
+#             # print(training_batch)
+#             # for i in len(training_batch):
+
+
+#             # training
+#             print(f"-----Starting batch num:{j}-----")
+#             gradient_descent(training_batch, model=gans, optimizer=optimizer, word_to_ix=word_to_ix)
+
+
+#             elapsed_train = time.time() - before_train
+#             print("-----Finished training in {}-----".format(elapsed_train))
+            
+        
+#         epoch_end = time.time() - epoch_start
+#         time_elapsed += epoch_end
+#         print("---Time elapsed after {}th epoch: {}---".format(epoch, round(epoch_end, 3)))
+#         print("TIME ELAPSED:", time_elapsed)
+
+#         validation_loss.append(calculate_loss(gans, x_batch, y_batch))
+        
+#     # Check predictions after training
+#     return gans, validation_loss
 
 
 def build_lstm_model_batch(epoch_count, batch_size, lr):

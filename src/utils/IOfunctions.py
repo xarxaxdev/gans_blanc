@@ -60,7 +60,8 @@ def save_model(model, filename):
     cur_path = os.path.split(os.path.realpath(__file__))[0]
     project_path = os.path.split(cur_path)[0]
     datafile = os.path.join(project_path, 'generated_models', filename)
-    torch.save(model.state_dict(), datafile)
+    # torch.save(model.state_dict(), datafile)
+    torch.save(model, datafile)
     return True
 
 def load_model(filename):
