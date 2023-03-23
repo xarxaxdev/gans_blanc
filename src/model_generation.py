@@ -125,7 +125,7 @@ def gradient_descent(training_data, model, optimizer, word_to_ix):
 
         #print(model.BiLSTM.weight)
         #assert(False)
-        optimizer.step()
+    optimizer.step()
     
     
 
@@ -136,6 +136,8 @@ def calculate_loss(model, x, y):
     with torch.no_grad():
         for i in range(len(x)):
             loss += model.neg_log_likelihood(x[i], y[i])
+    loss = loss / len(x)
+
     print(f"-----Validation Loss is {loss}-----")
 
     return loss

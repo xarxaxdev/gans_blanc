@@ -10,6 +10,7 @@ from model.bilstm_crf import BiLSTM_CRF
 # visualization libraries
 import matplotlib.pyplot as plt
 import numpy as np
+import random
 
 
 ### Here will be the main functions to evaluate the models
@@ -37,19 +38,19 @@ def save_plot_train_loss(train_loss,filename):
 
 
 def compute_f1(prediction, target):
-    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average=None)
+    metric = MulticlassF1Score(num_classes=len(ent_to_ix))
     return metric(prediction, target)
 
 def compute_acc(prediction, target):
-    metric = MulticlassAccuracy(num_classes=len(ent_to_ix), average=None)
+    metric = MulticlassAccuracy(num_classes=len(ent_to_ix))
     return metric(prediction, target)
 
 def compute_pre(prediction, target):
-    metric = MulticlassPrecision(num_classes=len(ent_to_ix), average=None)
+    metric = MulticlassPrecision(num_classes=len(ent_to_ix))
     return metric(prediction, target)
 
 def compute_rec(prediction, target):
-    metric = MulticlassRecall(num_classes=len(ent_to_ix), average=None)
+    metric = MulticlassRecall(num_classes=len(ent_to_ix))
     return metric(prediction, target)
 
 
@@ -66,7 +67,7 @@ def evaluate_model(model_path, data_path):
     for sentence, tags in test_data:
         for word in sentence:
             if word not in word_to_ix:
-                word_to_ix[word] = len(word_to_ix)
+                word_to_ix[word] = random.randint(0, 100)
     
     # glove = read_WE('src/pretrained_models/glove.6B.50d.txt')
     # embedding_matrix = get_embedding_matrix(glove, word_to_ix)
@@ -75,7 +76,7 @@ def evaluate_model(model_path, data_path):
     # model = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
     # model.load_state_dict(torch.load(model_path))
     # model.eval()
-    model = torch.load(model_path)
+    model = load_model(model_path)
     model.eval()
     # model = bilstm_crf.eval()
     print("-----Model initialised-----")
@@ -95,8 +96,9 @@ def evaluate_model(model_path, data_path):
     total_batches = len(test_data) // batch_size + 1 
     
     print("-----Running through test data-----")
-
     for i in range(len(x)):
+        # print(i)
+        # print(model(x[i]))
         y_hat.append(torch.tensor(model(x[i])[1]))
 
 
