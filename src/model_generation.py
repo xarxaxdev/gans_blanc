@@ -1,5 +1,4 @@
 ###Here will be the main script for generating the models
-import spacy
 import nltk
 import numpy as np
 import torch
