@@ -7,7 +7,6 @@ import torch.nn as nn
 import torch.optim as optim
 #from transformers import RobertaModel
 from torch.utils.data import DataLoader, Dataset, TensorDataset
-from sklearn.model_selection import KFold
 
 from tqdm import tqdm  # progress bar
 
