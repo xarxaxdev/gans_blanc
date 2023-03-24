@@ -9,13 +9,7 @@ from utils.NLP_utils import *
 from model_generation import *
 
 
-### Here will be the main functions to evaluate the models
-### Maybe draw some plots in src/plots
-
-
-
-
-def save_plot_train_loss(train_loss,filename):
+def save_plot_train_loss(train_loss, filename):
     epochs = len(train_loss)
 
     fig, ax = plt.subplots(figsize=(10, 4))
@@ -27,7 +21,7 @@ def save_plot_train_loss(train_loss,filename):
     fig.tight_layout()
 
     cur_path = os.path.split(os.path.realpath(__file__))[0]
-    datafile = os.path.join(cur_path,'plots',filename)
+    datafile = os.path.join(cur_path, 'plots', filename)
 
     plt.savefig(f'{datafile}.png', bbox_inches='tight')
     #plt.show()
@@ -48,7 +42,7 @@ def compute_rec(prediction, target):
 
 def evaluate_model(model_path, dataset):
     
-    # model initialisation
+    # model initialization
     if dataset == 'NER_DEV_JUDGEMENT.json':
         _, word_to_ix = build_representation('NER_TRAIN_JUDGEMENT.json')
     if dataset == 'NER_DEV_PREAMBLE.json':
@@ -70,15 +64,12 @@ def evaluate_model(model_path, dataset):
     model.eval()
     print("-----Model loaded-----")
 
-
-
     x = []
     y = []
     y_hat = []
     for sentence, targets in test_data:
         x.append(prepare_sequence(sentence, word_to_ix))
         y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
-
 
     batch = model_path.split(".")[2]
     batch_size = int("".join(list(filter(str.isdigit, batch))))
@@ -90,10 +81,8 @@ def evaluate_model(model_path, dataset):
         # print(model(x[i]))
         y_hat.append(torch.tensor(model(x[i])[1]))
 
-
     prediction = torch.cat(y_hat)
     target = torch.cat(y)
-
 
     print("-----Computing scores-----")
 
@@ -105,4 +94,3 @@ def evaluate_model(model_path, dataset):
     print(recall)
     print(target[100:300])
     print(prediction[100:300])
-

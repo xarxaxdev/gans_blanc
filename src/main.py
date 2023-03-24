@@ -99,17 +99,17 @@ def main():
             dataset = 'NER_TRAIN_PREAMBLE.json'
         
         training_data, word_to_ix = build_representation(dataset)
-        #we get the untrained model
+        # get the untrained model
         prepared_data, model = build_roberta_model_base(training_data)
-        #we train it to our examples
-        model,training_loss = train_model(model,prepared_data,epochs=epochs,batch_size = batch_size,lr=lr)
+        # train it to our examples
+        model, training_loss = train_model(model, prepared_data, epochs=epochs, batch_size = batch_size, lr=lr)
         filename = f'roberta.e{epochs}.bs{batch_size}.lr{lr}'
-        print('----- Saving model... -----')
+        print('-----Saving model-----')
         save_model(model,filename)
-        print('----- Model saved. -----')
-        print('----- Saving model training loss... -----')
-        save_plot_train_loss(training_loss,filename)
-        print('----- Model training loss saved. -----')
+        print('-----Model saved-----')
+        print('-----Saving model training loss-----')
+        save_plot_train_loss(training_loss, filename)
+        print('-----Model training loss saved-----')
 
 
     if args.evaluate_model:
