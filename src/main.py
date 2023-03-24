@@ -29,6 +29,13 @@ def params():
     )
 
     parser.add_argument(
+        '--split_datasets', dest='split_datasets',
+        help='Generates the dataset splits for training and validation.',
+        action='store_true'
+    )
+
+
+    parser.add_argument(
         '--evaluate_model', dest='evaluate_model',
         help='Evaluation of desired model with designated dataset.',
         action='store_true'
@@ -63,6 +70,15 @@ def params():
 
 def main():
     args = params()
+    if args.split_datasets:
+        if args.dataset == 'judgement':
+            dataset = 'NER_TRAIN_JUDGEMENT.json'
+        if args.dataset == 'preamble':
+            dataset = 'NER_TRAIN_PREAMBLE.json'
+
+        training_data, word_to_ix = build_representation(dataset)
+        output_file_validation = 'file validation'  
+
     if args.download_glove:
         url_glove = 'https://nlp.stanford.edu/data/glove.6B.zip'
         filename = 'glove.6B' 

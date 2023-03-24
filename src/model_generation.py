@@ -8,48 +8,53 @@ from model.bilstm_crf import BiLSTM_CRF
 import time
 
 
+HIDDEN_DIM=2
+
 torch.manual_seed(1)
 
 START_TAG = "<START>"
 STOP_TAG = "<STOP>"
-HIDDEN_DIM = 2
+PAD = "<PAD>"
 
 # entity to index dictionary
 ent_to_ix = {
-    "O": 0,
-    START_TAG: 1,
-    STOP_TAG: 2,
+    PAD:0,
+    "O": 1,
+    START_TAG: 2,
+    STOP_TAG: 3,
     
-    "B-COURT": 3,
-    "B-PETITIONER": 4,
-    "B-RESPONDENT": 5,
-    "B-JUDGE": 6,
-    "B-LAWYER": 7,
-    "B-DATE": 8,
-    "B-ORG": 9,
-    "B-GPE": 10,
-    "B-STATUTE": 11,
-    "B-PROVISION": 12,
-    "B-PRECEDENT": 13,
-    "B-CASE_NUMBER": 14,
-    "B-WITNESS": 15,
-    "B-OTHER_PERSON": 16,
+    "B-COURT": 4,
+    "B-PETITIONER": 5,
+    "B-RESPONDENT": 6,
+    "B-JUDGE": 7,
+    "B-LAWYER": 8,
+    "B-DATE": 9,
+    "B-ORG": 10,
+    "B-GPE": 11,
+    "B-STATUTE": 12,
+    "B-PROVISION": 13,
+    "B-PRECEDENT": 14,
+    "B-CASE_NUMBER": 15,
+    "B-WITNESS": 16,
+    "B-OTHER_PERSON": 17,
     
-    "I-COURT": 17,
-    "I-PETITIONER": 18,
-    "I-RESPONDENT": 19,
-    "I-JUDGE": 20,
-    "I-LAWYER": 21,
-    "I-DATE": 22,
-    "I-ORG": 23,
-    "I-GPE": 24,
-    "I-STATUTE": 25,
-    "I-PROVISION": 26,
-    "I-PRECEDENT": 27,
-    "I-CASE_NUMBER": 28,
-    "I-WITNESS": 29,
-    "I-OTHER_PERSON": 30
+    "I-COURT": 18,
+    "I-PETITIONER": 19,
+    "I-RESPONDENT": 20,
+    "I-JUDGE": 21,
+    "I-LAWYER": 22,
+    "I-DATE": 23,
+    "I-ORG": 24,
+    "I-GPE": 25,
+    "I-STATUTE": 26,
+    "I-PROVISION": 27,
+    "I-PRECEDENT": 28,
+    "I-CASE_NUMBER": 29,
+    "I-WITNESS": 30,
+    "I-OTHER_PERSON": 31,
 }
+
+
 
 def build_representation(dataset):
 
@@ -107,22 +112,6 @@ def calculate_loss(model, x, y):
     return loss
 
 
-class POS_dataset(Dataset):
-    def __init__(self, x, y):
-        # Initialize data, download, etc.
-        self.n_samples = len(x)
-
-        # here the first column is the class label, the rest are the features
-        self.x_data = x # size [n_samples, n_features]
-        self.y_data = y # size [n_samples, 1]
-
-    # support indexing such that dataset[i] can be used to get i-th sample
-    def __getitem__(self, index):
-        return self.x_data[index], self.y_data[index]
-
-    # we can call len(dataset) to return the size
-    def __len__(self):
-        return self.n_samples
 
 
 def build_lstm_model(epoch_count, batch_size, lr, dataset):

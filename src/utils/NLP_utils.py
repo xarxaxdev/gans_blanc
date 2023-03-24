@@ -58,7 +58,7 @@ def bio(data):
                     for j in range(1, len(entity['text'])):
                         tag[i+j] = 'I-' + entity['labels']
     
-    return (tokenized, tag)
+    return (['<START>'] + tokenized + ['<STOP>'], ['<START>'] + tag + ['<STOP>'])
 
 def download_pretrained_model(url, filename):
     cur_path = os.path.split(os.path.realpath(__file__))[0]

@@ -32,40 +32,40 @@ PAD = "<PAD>"
 
 # entity to index dictionary
 ent_to_ix = {
-    "O": 0,
-    START_TAG: 1,
-    STOP_TAG: 2,
+    PAD:0,
+    "O": 1,
+    START_TAG: 2,
+    STOP_TAG: 3,
     
-    "B-COURT": 3,
-    "B-PETITIONER": 4,
-    "B-RESPONDENT": 5,
-    "B-JUDGE": 6,
-    "B-LAWYER": 7,
-    "B-DATE": 8,
-    "B-ORG": 9,
-    "B-GPE": 10,
-    "B-STATUTE": 11,
-    "B-PROVISION": 12,
-    "B-PRECEDENT": 13,
-    "B-CASE_NUMBER": 14,
-    "B-WITNESS": 15,
-    "B-OTHER_PERSON": 16,
+    "B-COURT": 4,
+    "B-PETITIONER": 5,
+    "B-RESPONDENT": 6,
+    "B-JUDGE": 7,
+    "B-LAWYER": 8,
+    "B-DATE": 9,
+    "B-ORG": 10,
+    "B-GPE": 11,
+    "B-STATUTE": 12,
+    "B-PROVISION": 13,
+    "B-PRECEDENT": 14,
+    "B-CASE_NUMBER": 15,
+    "B-WITNESS": 16,
+    "B-OTHER_PERSON": 17,
     
-    "I-COURT": 17,
-    "I-PETITIONER": 18,
-    "I-RESPONDENT": 19,
-    "I-JUDGE": 20,
-    "I-LAWYER": 21,
-    "I-DATE": 22,
-    "I-ORG": 23,
-    "I-GPE": 24,
-    "I-STATUTE": 25,
-    "I-PROVISION": 26,
-    "I-PRECEDENT": 27,
-    "I-CASE_NUMBER": 28,
-    "I-WITNESS": 29,
-    "I-OTHER_PERSON": 30,
-    PAD:31
+    "I-COURT": 18,
+    "I-PETITIONER": 19,
+    "I-RESPONDENT": 20,
+    "I-JUDGE": 21,
+    "I-LAWYER": 22,
+    "I-DATE": 23,
+    "I-ORG": 24,
+    "I-GPE": 25,
+    "I-STATUTE": 26,
+    "I-PROVISION": 27,
+    "I-PRECEDENT": 28,
+    "I-CASE_NUMBER": 29,
+    "I-WITNESS": 30,
+    "I-OTHER_PERSON": 31,
 }
 ix_to_ent = {}
 for ent in ent_to_ix:
@@ -136,10 +136,6 @@ def train_model(model,dataset,epochs = 3,batch_size = 128,lr = 1e-5):
             # with the .backward method it calculates all 
             # of  the gradients used for autograd
             loss.backward()
-            # NOTE: if we append `loss` (a tensor) we will force the GPU to save
-            # the loss into its memory, potentially filling it up. To avoid this
-            # we rather store its float value, which can be accessed through the
-            # `.item` method
             current_loss += loss.item()
             curr_cases += batch_size
             if i % 8 == 0 and i > 0:
