@@ -4,6 +4,7 @@ from model_evaluation import *
 from utils.IOfunctions import *
 from utils.NLP_utils import *
 from model.roberta import *
+import random
 
 def params():
     parser = argparse.ArgumentParser(
@@ -71,13 +72,19 @@ def params():
 def main():
     args = params()
     if args.split_datasets:
-        if args.dataset == 'judgement':
-            dataset = 'NER_TRAIN_JUDGEMENT.json'
-        if args.dataset == 'preamble':
-            dataset = 'NER_TRAIN_PREAMBLE.json'
+        random.seed(123)
+        val_split= 0.3
+        for dataset in ['NER_TRAIN_JUDGEMENT.json','NER_TRAIN_PREAMBLE.json']:
+            training_data, word_to_ix = build_representation(dataset)
+            validation_file = dataset.replace('.json','_VAL.json')  
+            training_file = dataset.replace('.json','_TRA.json')  
+            random.shuffle(training_data)
+            split_index = round(val_split*len(training_data))
+            validation_data = training_data[:split_index]
+            training_data = training_data[split_index:]
+            save_raw_python(validation_data,validation_file)
+            save_raw_python(training_data,training_file)        
 
-        training_data, word_to_ix = build_representation(dataset)
-        output_file_validation = 'file validation'  
 
     if args.download_glove:
         url_glove = 'https://nlp.stanford.edu/data/glove.6B.zip'

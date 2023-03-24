@@ -64,5 +64,22 @@ def load_model(filename):
     cur_path = os.path.split(os.path.realpath(__file__))[0]
     project_path = os.path.split(cur_path)[0]
     datafile = os.path.join(project_path,'generated_models', filename)
-
     return torch.load(datafile)
+
+
+def save_raw_python(content, filename):
+    cur_path = os.path.split(os.path.realpath(__file__))[0]
+    project_path = os.path.split(cur_path)[0]
+    datafile = os.path.join(project_path, 'data', filename)
+    with open(datafile, 'w') as f:
+        f.write(json.dumps(content))
+    return True
+
+
+def read_raw_python(filename):
+    cur_path = os.path.split(os.path.realpath(__file__))[0]
+    project_path = os.path.split(cur_path)[0]
+    datafile = os.path.join(project_path,'data', filename)
+    with open(datafile,'r') as f:
+        return json.loads(f.read())
+
