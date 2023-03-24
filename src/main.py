@@ -80,8 +80,8 @@ def main():
             training_file = dataset.replace('.json','_TRA.json')  
             random.shuffle(training_data)
             split_index = round(val_split*len(training_data))
-            validation_data = training_data[:split_index]
-            training_data = training_data[split_index:]
+            validation_data = (training_data[:split_index],word_to_ix)
+            training_data = (training_data[split_index:],word_to_ix)
             save_raw_python(validation_data,validation_file)
             save_raw_python(training_data,training_file)        
 
