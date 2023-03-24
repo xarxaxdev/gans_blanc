@@ -6,6 +6,9 @@ import numpy as np
 import torch # the main pytorch library
 import torch.nn as nn # the sub-library containing Softmax, Module and other useful functions
 import torch.optim as optim # the sub-library containing the common optimizers (SGD, Adam, etc.)
+import os
+import gc
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:2048"
 
 # huggingface's transformers library
 from transformers import RobertaForTokenClassification, RobertaTokenizer
@@ -62,24 +65,22 @@ ent_to_ix = {
     "I-CASE_NUMBER": 28,
     "I-WITNESS": 29,
     "I-OTHER_PERSON": 30,
-    PAD : 31
+    PAD:31
 }
-
 ix_to_ent = {}
 for ent in ent_to_ix:
     ix_to_ent[ent_to_ix[ent]] = ent
 
 
-roberta_version = 'roberta-base'
+roberta_version = 'distilroberta-base'
 tokenizer = RobertaTokenizer.from_pretrained(roberta_version)
 
 def to_encoding(row):
+    #turn tokens into Roberta input, pad, add attention mask
     encodings = tokenizer(row['sentence'], truncation=True, padding='max_length', is_split_into_words=True)
     row['sentence'] = row['sentence'] + [PAD] * (tokenizer.model_max_length - len(row['sentence']))
-
     # pad tags to max possible length
     labels = row['labels'] + [PAD] * (tokenizer.model_max_length - len(row['labels']))
-
     labels = [ ent_to_ix[i] for i in labels]
     labels = torch.from_numpy(np.asarray(labels))
     return { **encodings, 'labels': labels }
@@ -89,8 +90,7 @@ def build_roberta_model_base(training_data):
     training_data = [{'sentence': i[0],'labels': i[1]} for i in training_data]
     training_data = {key: [d[key] for d in training_data] for key in training_data[0]}
     training_data = datasets.Dataset.from_dict(training_data)
-
-    training_data = training_data.map(to_encoding)
+    training_data = training_data.map(to_encoding)  
     # format the datasets so that we return only 'input_ids', 'attention_mask' and 'labels' 
     # making it easier to train and validate the model
     training_data.set_format(type='torch', columns=['input_ids', 'attention_mask', 'labels'])
@@ -104,39 +104,58 @@ def build_roberta_model_base(training_data):
     return training_data, model
 
 
-def train_model(model, dataset, epochs = 3, batch_size = 128, lr = 1e-5):
+def train_model(model,dataset,epochs = 3,batch_size = 128,lr = 1e-5):    
     print('-----Preparing for training-----')
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # set the model in 'train' mode and send it to the device
+    print(torch.cuda.is_available())
+    print(device)
+
     model.train().to(device)
     # initialize the Adam optimizer (used for training/updating the model)
     optimizer = optim.AdamW(params=model.parameters(), lr=lr)
     train_data = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
     training_loss = []
 
-    print('-----Beginning to train model-----')
+    torch.cuda.empty_cache()
+    gc.collect() 
+    print('-----Beginning to train model...-----')
 
     # iterate through the data 'epochs' times
     for epoch in tqdm(range(epochs)):
         current_loss = 0
+        curr_cases = 0
         # iterate through each batch of the train data
         for i, batch in enumerate(tqdm(train_data)):
+            # move the batch tensors to the same device as the
             batch = { k:v.to(device) for k, v in batch.items() }
             # send 'input_ids', 'attention_mask' and 'labels' to the model
             outputs = model(**batch)
             # the outputs are of shape (loss, logits)
             loss = outputs[0]
-            # with the .backward method it calculates all of the gradients used for autograd
+            # with the .backward method it calculates all 
+            # of  the gradients used for autograd
             loss.backward()
             # NOTE: if we append `loss` (a tensor) we will force the GPU to save
             # the loss into its memory, potentially filling it up. To avoid this
             # we rather store its float value, which can be accessed through the
             # `.item` method
             current_loss += loss.item()
-
-        training_loss.append(current_loss / dataset.num_rows)
+            curr_cases += batch_size
+            if i % 8 == 0 and i > 0:
+                # update the model using the optimizer
+                optimizer.step()
+                # once we update the model we set the gradients to zero
+                optimizer.zero_grad()
+                # store the loss value for visualization
+                training_loss.append(current_loss / curr_cases)
+                current_loss = 0
+                current_cases = 0
+                torch.cuda.empty_cache() 
+                gc.collect()
+        training_loss.append(current_loss / curr_cases)
         # update the model one last time for this epoch
         optimizer.step()
         optimizer.zero_grad()
     
-    return model, training_loss
+    return model,training_loss
