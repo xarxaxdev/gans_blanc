@@ -28,15 +28,15 @@ def save_plot_train_loss(train_loss, filename):
 
 
 def compute_f1(prediction, target):
-    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average=None)
+    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
     return metric(prediction, target)
 
 def compute_pre(prediction, target):
-    metric = MulticlassPrecision(num_classes=len(ent_to_ix), average=None)
+    metric = MulticlassPrecision(num_classes=len(ent_to_ix), average='macro')
     return metric(prediction, target)
 
 def compute_rec(prediction, target):
-    metric = MulticlassRecall(num_classes=len(ent_to_ix), average=None)
+    metric = MulticlassRecall(num_classes=len(ent_to_ix), average='macro')
     return metric(prediction, target)
 
 
