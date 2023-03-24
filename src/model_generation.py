@@ -95,14 +95,14 @@ def gradient_descent(training_data, model, optimizer):
     
 
 def calculate_loss(model, x, y):
-    print("-----Calculating validation loss-----")
+    print("-----Calculating training loss-----")
     loss = 0.0
     with torch.no_grad():
         for i in range(len(x)):
             loss += model.neg_log_likelihood(x[i], y[i])
     loss = loss / len(x)
 
-    print(f"-----Validation loss is {loss}-----")
+    print(f"-----Training loss is {loss}-----")
 
     return loss
 
@@ -127,8 +127,8 @@ class POS_dataset(Dataset):
 
 def build_lstm_model(epoch_count, batch_size, lr, dataset):
 
-    # store validation loss after every epoch
-    validation_loss = []
+    # store training loss after every epoch
+    training_loss = []
 
     # prepare input sequences
     training_data, word_to_ix = build_representation(dataset)
@@ -184,7 +184,7 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
         print("---Time elapsed after {}th epoch: {}---".format(epoch, round(epoch_end, 3)))
 
         # compute loss
-        validation_loss.append(calculate_loss(bilstm_crf, x, y))
+        training_loss.append(calculate_loss(bilstm_crf, x, y))
         
     # check predictions after training
-    return bilstm_crf, validation_loss
+    return bilstm_crf, training_loss
