@@ -1,8 +1,6 @@
-#pytorch test by delfina, will need it whether we end up discarding spacy or not
+
 import torch
-import torch.autograd as autograd
 import torch.nn as nn
-import torch.optim as optim
 from utils.NLP_utils import *
 
 
@@ -12,38 +10,23 @@ STOP_TAG = "<STOP>"
 
 
 class BiLSTM_CRF(nn.Module):
-    #def __init__(self, input_size, hidden_size, num_layers, embedding_dim, dropout, ent_to_ix, batch_first=True):
     def __init__(self, input_size, ent_to_ix, embedding, hidden_dim):
         super(BiLSTM_CRF, self).__init__()
         self.input_size = input_size # number of expected features in the input x
-        self.word_embeds, num_embeddings, embedding_dim = embedding 
+        self.word_embeds, num_embeddings, embedding_dim = embedding # load pretrained embedding
         self.hidden_dim = hidden_dim
-        #self.hidden_size = hidden_size #number of features in the hidden state h
-        #self.num_layers = num_layers # number of recurrent layers
-        #self.embedding_dim = embedding_dim
-        #self.dropout = dropout
-        #self.embedding_dim = embedding_dim
-
-        # self.word_embeds = nn.Embedding(input_size, embedding_dim)
-        
-
-
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim // 2,
-                            num_layers=1, bidirectional=True)
         self.ent_to_ix = ent_to_ix # define helper ent_to_ix
         self.entset_size = len(ent_to_ix) # idem
-
         self.word_embeds = nn.Embedding(input_size, embedding_dim)
 
          # maps output of lstm into tag space
         self.BiLSTM = nn.LSTM(embedding_dim, hidden_dim // 2,
                             num_layers=1, bidirectional=True)
         self.hidden2tag = nn.Linear(hidden_dim, self.entset_size)
-
         self.transitions = nn.Parameter(torch.randn(self.entset_size, self.entset_size))
         self.transitions.data[ent_to_ix[START_TAG], :] = -10000
         self.transitions.data[:, ent_to_ix[STOP_TAG]] = -10000
-        #self.CRF = CRF(len(ent_to_ix), batch_first=True)
+
 
     def init_hidden(self):
         return (torch.randn(2, 1, self.hidden_dim // 2),

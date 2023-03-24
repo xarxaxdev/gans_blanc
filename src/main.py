@@ -55,8 +55,8 @@ def params():
     )
 
     parser.add_argument(
-        "--test_data", dest="test_data",
-        help='data for model evaluation'
+        "--dataset", dest="dataset",
+        help='dataset for training and evaluating model'
     )
 
     return parser.parse_args()
@@ -73,9 +73,14 @@ def main():
         epoch_count = int(args.epochs)
         batch_size = int(args.batch)
         lr = float(args.lr)
-        print("Training BiLSTM-CRF with parameters {} epochs, {} batch size, and {} learning rate.".format(epoch_count,
+        if args.dataset == 'judgement':
+            dataset = 'NER_TRAIN_JUDGEMENT.json'
+        if args.dataset == 'preamble':
+            dataset = 'NER_TRAIN_PREAMBLE.json'
+
+        print("Training BiLSTM-CRF with parameters {} epochs, {} batch size, and {} learning rate".format(epoch_count,
                                                                                                         batch_size, lr))
-        model, validation_loss = build_lstm_model(epoch_count=epoch_count, batch_size=batch_size, lr=lr)
+        model, validation_loss = build_lstm_model(epoch_count, batch_size, lr, dataset)
         print(validation_loss)
         filename = f'bilstm_crf.e{epoch_count}.bs{batch_size}.lr{lr}'
         print('----- Saving model... -----')
@@ -88,7 +93,12 @@ def main():
         epochs = int(args.epochs)
         batch_size = int(args.batch)
         lr = float(args.lr)
-        training_data, word_to_ix = build_representation()
+        if args.dataset == 'judgement':
+            dataset = 'NER_TRAIN_JUDGEMENT.json'
+        if args.dataset == 'preamble':
+            dataset = 'NER_TRAIN_PREAMBLE.json'
+        
+        training_data, word_to_ix = build_representation(dataset)
         #we get the untrained model
         prepared_data, model = build_roberta_model_base(training_data)
         #we train it to our examples
@@ -104,32 +114,12 @@ def main():
 
     if args.evaluate_model:
         model = str(args.model)
-        test_data = str(args.test_data)
-        evaluate_model(model_path=model, data_path=test_data)
+        if args.dataset == 'judgement':
+            dataset = 'NER_DEV_JUDGEMENT.json'
+        if args.dataset == 'preamble':
+            dataset = 'NER_DEV_PREAMBLE.json'
+        evaluate_model(model, dataset)
 
 
 if __name__ == '__main__':
     main()
-
-
-    #take argument value or default
-    #preprocess_data = args.preprocess_data if args.preprocess_data else ''
-
-    #if args.roberta_test:
-        #print('-----testing roberta-----')
-        #sentences = ['hello can i have some pizza',
-        #'do you want some tea']
-
-        #model_generation.test_roberta(sentences)
-
-    #if args.glove_test:
-        #print('-----testing glove-----')
-        #sentences = ['hello can i have some pizza',
-        #'do you want some tea']
-
-        #model_generation.test_glove(sentences)
-
-    #if args.bilstm_crf != '':
-        #print('-----generating bilstm_crf-----')
-        #model = build_lstm_model(epoch_count=epoch_count, batch_size=batch_size, lr=lr) # epoch, batch size
-
