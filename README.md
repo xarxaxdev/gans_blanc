@@ -1,6 +1,5 @@
 # BiLSTM-CRF and RoBERTa Models for Legal Named Entity Recognition
 #### gans blank  ┐( ͡° ʖ̯ ͡°)┌ :swan:
-:swan:
 ## Project Description
 This repository contains the final project for the course 'Advanced Natural Language Processing' of the M.Sc. Cognitive Systems: Language, Learning and Reasoning at Universität Potsdam.
 This project deals with the [SemEval-2023 task 6: LegalEval , subtask B: Legal Entity Recognition (L-NER)](https://sites.google.com/view/legaleval/home#h.fbpoqsn0hjeh). You can find the paper presenting this task [here](https://aclanthology.org/2022.nllp-1.15/). This repository has been contributed by Guillem Gili i Bueno, Yi-Sheng Hsu and Delfina Jovanovich Trakál.
@@ -11,11 +10,11 @@ The packages required to run this project can be found in [requirements.txt](req
 ```bash
 $ pip install -r requirements.txt
 ```
-Make sure your Python version is compatible with PyTorch (double check???).
+Make sure your Python version is compatible with PyTorch.
 
 ## Dataset
 The data has been collected by the SemEval-2023 tasks 6 creators. It is divided into two categories, judgement and preamble, which don't present the same entity type and frequency. The .json files can be found under `src/data`.
-More details on the data extraction can be found in the base paper linked above.
+More details on the data extraction and annotation processes can be found in the base paper linked above.
 
 ## Setup
 ### Training
