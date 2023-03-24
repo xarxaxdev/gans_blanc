@@ -1,8 +1,11 @@
 import torch
 import os
-import requests, zipfile, io
+import requests, zipfile
 from nltk.tokenize import word_tokenize
 from clint.textui import progress
+import nltk
+
+nltk.download('punkt')
 
 
 def argmax(vec):
