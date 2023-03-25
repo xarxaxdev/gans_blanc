@@ -152,13 +152,6 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
     # preparing model components
     bilstm_crf = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
     optimizer = optim.SGD(bilstm_crf.parameters(), lr=lr, weight_decay=1e-4)
-    
-    # training set
-    x_train = []
-    y_train = []
-    for sentence, targets in training_data:
-        x_train.append(prepare_sequence(sentence, word_to_ix))
-        y_train.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
 
     before_train = time.time()
     time_elapsed = 0
@@ -166,8 +159,16 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
 
     for epoch in range(1, epoch_count+1):
         
-        # shuffle before training
+        # shuffle and prepare training set
         random.shuffle(training_data)
+        x_train = []
+        y_train = []
+        for sentence, targets in training_data:
+            x_train.append(prepare_sequence(sentence, word_to_ix))
+            y_train.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long)) 
+        print(x_train[0])
+        print(y_train[0])
+           
         print("---Starting epoch {}---".format(epoch))
         epoch_start = time.time()
         total_batches = len(training_data) // batch_size + 1 
