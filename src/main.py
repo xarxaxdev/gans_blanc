@@ -130,7 +130,7 @@ def main():
         # get the untrained model
         tra_data, val_data, model = build_roberta_model_base(tra_data,val_data)
         # train it to our examples
-        model,val_loss, tra_loss = train_model(model, tra_data, val_data, epochs=epochs, batch_size = batch_size, lr=lr)
+        model,tra_loss,val_loss = train_model(model, tra_data, val_data, epochs=epochs, batch_size = batch_size, lr=lr)
         filename = f'roberta.{dataset}.e{epochs}.bs{batch_size}.lr{lr}'
         print('-----Saving model-----')
         save_model(model,filename)
