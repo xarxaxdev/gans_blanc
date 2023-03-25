@@ -154,7 +154,7 @@ def train_model(model,dataset,val_data,epochs = 3,batch_size = 128,lr = 1e-5):
         current_loss = 0
         curr_cases = 0
         # iterate through each batch of the train data
-        for i, batch in enumerate(tqdm(train_data, leave = True, desc="Batch progress:")):
+        for i, batch in enumerate(tqdm(train_data, leave = False, desc="Batch progress:")):
             # move the batch tensors to the same device as the
             batch = { k:v.to(device) for k, v in batch.items() }
             # send 'input_ids', 'attention_mask' and 'labels' to the model
