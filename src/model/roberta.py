@@ -92,7 +92,7 @@ def to_encoding(row):
     return { **encodings, 'labels': labels }
 
 
-def prepared_data(data,dataset_type):
+def prepare_data(data,dataset_type):
     data = [{'sentence': i[0],'labels': i[1]} for i in data]
     data = {key: [d[key] for d in data] for key in data[0]}
     data = datasets.Dataset.from_dict(data)
@@ -103,8 +103,8 @@ def prepared_data(data,dataset_type):
     return data
 
 def build_roberta_model_base(training_data,validation_data):
-    training_data = prepared_data(training_data,'training')
-    validation_data = prepared_data(validation_data,'validation')
+    training_data = prepare_data(training_data,'training')
+    validation_data = prepare_data(validation_data,'validation')
     
     # initialize the model and provide the 'num_labels' used to create the classification layer
     model = RobertaForTokenClassification.from_pretrained(roberta_version, num_labels=len(ent_to_ix))

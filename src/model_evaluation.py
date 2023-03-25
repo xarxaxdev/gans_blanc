@@ -77,8 +77,8 @@ def evaluate_model(model_path, dataset):
     
     print("-----Running through test data-----")
     for i in range(len(x)):
-        # print(i)
-        # print(model(x[i]))
+        print(i)
+        print(model(x[i]))
         y_hat.append(torch.tensor(model(x[i])[1]))
 
     prediction = torch.cat(y_hat)
