@@ -50,7 +50,7 @@ def evaluate_model(model_path, dataset):
     
     # update test data to representation
     raw_data = read_raw_data(dataset)
-    test_data = build_training_data(raw_data)
+    test_data = build_data_representation(raw_data)
 
     # randomly assign unknown words to word_to_ix
     for sentence, tags in test_data:

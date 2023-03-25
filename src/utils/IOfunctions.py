@@ -16,14 +16,14 @@ def read_raw_data(filename):
     return data
 
 
-def build_training_data(raw_data):
+def build_data_representation(raw_data):
     
-    training_data = []
-
+    data = []
+    
     for i in range(0, len(raw_data)):
-        training_data.append(bio(raw_data[i]))
+        data.append(bio(raw_data[i]))
     
-    return training_data
+    return data
 
 def read_WE(path):
     embeddings_dict = {}

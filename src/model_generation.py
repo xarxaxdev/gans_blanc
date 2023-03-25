@@ -6,6 +6,7 @@ from utils.NLP_utils import *
 from utils.IOfunctions import *
 from model.bilstm_crf import BiLSTM_CRF
 import time
+import random
 
 
 HIDDEN_DIM=2
@@ -61,18 +62,18 @@ def build_representation(dataset):
     # load our training data
     print("-----Reading and transforming data-----")
     raw_data = read_raw_data(dataset)
-    training_data = build_training_data(raw_data)
+    data = build_data_representation(raw_data)
 
     print("-----Data read and transformed-----")
 
     # build word to index dictionary
     word_to_ix = {}
-    for sentence, tags in training_data:
+    for sentence, tags in data:
         for word in sentence:
             if word not in word_to_ix:
                 word_to_ix[word] = len(word_to_ix)
 
-    return training_data, word_to_ix
+    return data, word_to_ix
 
 
 def create_emb_layer(weights_matrix, non_trainable=False):
@@ -100,14 +101,14 @@ def gradient_descent(training_data, model, optimizer):
     
 
 def calculate_loss(model, x, y):
-    print("-----Calculating training loss-----")
+    print("-----Calculating validaiton loss-----")
     loss = 0.0
     with torch.no_grad():
         for i in range(len(x)):
             loss += model.neg_log_likelihood(x[i], y[i])
     loss = loss / len(x)
 
-    print(f"-----Training loss is {loss}-----")
+    print(f"-----Validation loss: {loss}-----")
 
     return loss
 
@@ -116,11 +117,23 @@ def calculate_loss(model, x, y):
 
 def build_lstm_model(epoch_count, batch_size, lr, dataset):
 
-    # store training loss after every epoch
-    training_loss = []
+    # store validation loss after every epoch
+    validation_loss = []
 
     # prepare input sequences
-    training_data, word_to_ix = build_representation(dataset)
+    full_data, word_to_ix = build_representation(dataset)
+
+    # split
+    val_file = dataset.replace('.json','_VAL.json')
+    tra_file = dataset.replace('.json','_TRA.json')
+
+    validation_data = read_raw_data(val_file)[0]
+    training_data = read_raw_data(tra_file)[0]
+
+    # validation_data = build_data_representation(val_data)
+    # training_data = build_data_representation(tra_data)
+
+    # print(training_data[2])
 
     # preparing glove word embeddings
     filename = 'glove.6B.50d' 
@@ -136,16 +149,22 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
     # preparing model components
     bilstm_crf = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
     optimizer = optim.SGD(bilstm_crf.parameters(), lr=lr, weight_decay=1e-4)
+    
+    # validation set
     x  = []
     y  = []
-    for sentence,targets in training_data:
+    for sentence, targets in validation_data:
         x.append(prepare_sequence(sentence, word_to_ix))
         y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
 
     before_train = time.time()
     time_elapsed = 0
 
+
     for epoch in range(1, epoch_count+1):
+        
+        # shuffle before training
+        random.shuffle(training_data)
         print("---Starting epoch {}---".format(epoch))
         epoch_start = time.time()
         total_batches = len(training_data) // batch_size + 1 
@@ -173,7 +192,7 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
         print("---Time elapsed after {}th epoch: {}---".format(epoch, round(epoch_end, 3)))
 
         # compute loss
-        training_loss.append(calculate_loss(bilstm_crf, x, y))
+        validation_loss.append(calculate_loss(bilstm_crf, x, y))
         
     # check predictions after training
-    return bilstm_crf, training_loss
+    return bilstm_crf, validation_loss
