@@ -168,13 +168,17 @@ def train_model(model,dataset,val_data,epochs = 3,batch_size = 128,lr = 1e-5):
                 current_cases = 0
                 torch.cuda.empty_cache() 
                 gc.collect()
+                validation_loss.append(compute_validation_loss(model, val_data))
+                #must set model to training again, validation deactivates training
+                model.train().to(device)
+
         # update the model one last time for this epoch
         optimizer.step()
         optimizer.zero_grad()
         #Now we evaluate the model
         training_loss.append(current_loss / curr_cases)
         validation_loss.append(compute_validation_loss(model, val_data))
-        #must set model to training again
+        #must set model to training again, validation deactivates training
         model.train().to(device)
 
     
