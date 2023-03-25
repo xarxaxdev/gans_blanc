@@ -1,3 +1,4 @@
 *.pyc
 src/pretrained_models/*.txt
 src/pretrained_models/*.zip
+src/generated_models/roberta*
