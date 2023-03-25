@@ -123,8 +123,8 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
     # prepare input sequences
     full_data, word_to_ix = build_representation(dataset)
 
-    print(len(full_data))
-    print(full_data[0])
+    # print(len(full_data))
+    # print(full_data[0])
 
     # split
     val_file = dataset.replace('.json','_VAL.json')
@@ -133,10 +133,10 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
     validation_data = read_raw_data(val_file)[0]
     training_data = read_raw_data(tra_file)[0]
 
-    print(len(training_data))
-    print(len(validation_data))
-    print(training_data[0])
-    print(validation_data[0])
+    # print(len(training_data))
+    # print(len(validation_data))
+    # print(training_data[0])
+    # print(validation_data[0])
 
     # preparing glove word embeddings
     filename = 'glove.6B.50d' 
