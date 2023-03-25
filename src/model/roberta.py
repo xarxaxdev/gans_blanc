@@ -111,7 +111,7 @@ def build_roberta_model_base(training_data,validation_data):
 
 def compute_validation_loss(model,device, validation_data, batch_size):
     model.eval()  # handle drop-out/batch norm layers
-    validation_loader = torch.utils.data.DataLoader(validation_data, batch_size=batch_size)
+    validation_loader = torch.utils.data.DataLoader(validation_data, batch_size=12*batch_size)
     current_loss = 0
     curr_cases = 0
     with torch.no_grad():
@@ -166,7 +166,7 @@ def train_model(model,dataset,val_data,epochs = 3,batch_size = 128,lr = 1e-5):
             loss.backward()
             current_loss += loss.item()
             curr_cases += batch_size
-            if i % 64 == 0 and i > 0:#update every i*batch_size
+            if i % 128 == 0 and i > 0:#update every i*batch_size
                 # update the model using the optimizer
                 optimizer.step()
                 # once we update the model we set the gradients to zero
@@ -177,9 +177,11 @@ def train_model(model,dataset,val_data,epochs = 3,batch_size = 128,lr = 1e-5):
                 current_cases = 0
                 torch.cuda.empty_cache() 
                 gc.collect()
-                validation_loss.append(compute_validation_loss(model,device, val_data,batch_size))
+                #initially we thought about having more validation data points, 
+                #but this took too long.
+                #validation_loss.append(compute_validation_loss(model,device, val_data,batch_size))
                 #must set model to training again, validation deactivates training
-                model.train().to(device)
+                #model.train().to(device)
         # update the model one last time for this epoch
         optimizer.step()
         optimizer.zero_grad()
