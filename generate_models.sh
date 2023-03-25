@@ -13,6 +13,7 @@ python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHE
 python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr 0.075
 
 
+
 #python src/main.py --roberta --epochs 50 --batch 128 --lr 0.01
 #python src/main.py --roberta --epochs 50 --batch 128 --lr 0.025
 #python src/main.py --roberta --epochs 50 --batch 128 --lr 0.05
