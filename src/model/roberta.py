@@ -157,7 +157,7 @@ def train_model(model,dataset,val_data,epochs = 3,batch_size = 128,lr = 1e-5):
             loss.backward()
             current_loss += loss.item()
             curr_cases += batch_size
-            if i % 8 == 0 and i > 0:
+            if i % 8 == 0 and i > 0:#update every i*batch_size
                 # update the model using the optimizer
                 optimizer.step()
                 # once we update the model we set the gradients to zero
