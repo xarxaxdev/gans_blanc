@@ -86,20 +86,20 @@ def to_encoding(row):
     return { **encodings, 'labels': labels }
 
 
-def prepared_data(data):
+def prepared_data(data,dataset_type):
     data = [{'sentence': i[0],'labels': i[1]} for i in data]
     data = {key: [d[key] for d in data] for key in data[0]}
     data = datasets.Dataset.from_dict(data)
-    data = data.map(to_encoding)  
+    data = data.map(to_encoding,desc= f'Mapping {dataset_type} dataset')  
     # format the datasets so that we return only 'input_ids', 'attention_mask' and 'labels' 
     # making it easier to train and validate the model
     data.set_format(type='torch', columns=['input_ids', 'attention_mask', 'labels'])
     return data
 
 def build_roberta_model_base(training_data,validation_data):
-    training_data = prepared_data(training_data)
-    validation_data = prepared_data(validation_data)
-
+    training_data = prepared_data(training_data,'training')
+    validation_data = prepared_data(validation_data,'validation')
+    
     # initialize the model and provide the 'num_labels' used to create the classification layer
     model = RobertaForTokenClassification.from_pretrained(roberta_version, num_labels=len(ent_to_ix))
     # assign the 'id2label' and 'label2id' model configs
@@ -109,16 +109,28 @@ def build_roberta_model_base(training_data,validation_data):
     return training_data, validation_data, model
 
 
-def compute_validation_loss(model, validation_data):
+def compute_validation_loss(model,device, validation_data, batch_size):
     model.eval()  # handle drop-out/batch norm layers
     validation_loader = torch.utils.data.DataLoader(validation_data, batch_size=batch_size)
-    loss = 0
+    current_loss = 0
+    curr_cases = 0
     with torch.no_grad():
-        for x,y in validation_loader:
-            out = model(x)  # only forward pass - NO gradients!!
-            loss += criterion(out, y)
+        #for step,(x,y) in enumerate(validation_loader):
+        #    out = model(**x)  # only forward pass - NO gradients!!
+        #    loss += criterion(out, y)
+        for i, batch in enumerate(tqdm(validation_loader,desc="Validation progress:")):
+            # move the batch tensors to the same device as the
+            batch = { k:v.to(device) for k, v in batch.items() }
+            # send 'input_ids', 'attention_mask' and 'labels' to the model
+            outputs = model(**batch)
+            # the outputs are of shape (loss, logits)
+            loss = outputs[0]
+            current_loss += loss.item()
+            curr_cases += batch_size
+            
+        
         # total loss - divide by number of batches
-        val_loss = loss / len(validation_loader)
+        val_loss = current_loss / len(validation_loader)
         return val_loss
 
 
@@ -126,9 +138,6 @@ def train_model(model,dataset,val_data,epochs = 3,batch_size = 128,lr = 1e-5):
     print('-----Preparing for training-----')
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # set the model in 'train' mode and send it to the device
-    print(torch.cuda.is_available())
-    print(device)
-
     model.train().to(device)
     # initialize the Adam optimizer (used for training/updating the model)
     optimizer = optim.AdamW(params=model.parameters(), lr=lr)
@@ -141,11 +150,11 @@ def train_model(model,dataset,val_data,epochs = 3,batch_size = 128,lr = 1e-5):
     print('-----Beginning to train model...-----')
 
     # iterate through the data 'epochs' times
-    for epoch in tqdm(range(epochs)):
+    for epoch in tqdm(range(epochs),desc="Epoch progress:"):
         current_loss = 0
         curr_cases = 0
         # iterate through each batch of the train data
-        for i, batch in enumerate(tqdm(train_data)):
+        for i, batch in enumerate(tqdm(train_data,desc="Batch progress:")):
             # move the batch tensors to the same device as the
             batch = { k:v.to(device) for k, v in batch.items() }
             # send 'input_ids', 'attention_mask' and 'labels' to the model
@@ -157,7 +166,7 @@ def train_model(model,dataset,val_data,epochs = 3,batch_size = 128,lr = 1e-5):
             loss.backward()
             current_loss += loss.item()
             curr_cases += batch_size
-            if i % 8 == 0 and i > 0:#update every i*batch_size
+            if i % 64 == 0 and i > 0:#update every i*batch_size
                 # update the model using the optimizer
                 optimizer.step()
                 # once we update the model we set the gradients to zero
@@ -168,16 +177,15 @@ def train_model(model,dataset,val_data,epochs = 3,batch_size = 128,lr = 1e-5):
                 current_cases = 0
                 torch.cuda.empty_cache() 
                 gc.collect()
-                validation_loss.append(compute_validation_loss(model, val_data))
+                validation_loss.append(compute_validation_loss(model,device, val_data,batch_size))
                 #must set model to training again, validation deactivates training
                 model.train().to(device)
-
         # update the model one last time for this epoch
         optimizer.step()
         optimizer.zero_grad()
         #Now we evaluate the model
         training_loss.append(current_loss / curr_cases)
-        validation_loss.append(compute_validation_loss(model, val_data))
+        validation_loss.append(compute_validation_loss(model, device,val_data,batch_size))
         #must set model to training again, validation deactivates training
         model.train().to(device)
 
