@@ -86,14 +86,19 @@ def to_encoding(row):
     return { **encodings, 'labels': labels }
 
 
-def build_roberta_model_base(training_data):
-    training_data = [{'sentence': i[0],'labels': i[1]} for i in training_data]
-    training_data = {key: [d[key] for d in training_data] for key in training_data[0]}
-    training_data = datasets.Dataset.from_dict(training_data)
-    training_data = training_data.map(to_encoding)  
+def prepared_data(data):
+    data = [{'sentence': i[0],'labels': i[1]} for i in data]
+    data = {key: [d[key] for d in data] for key in data[0]}
+    data = datasets.Dataset.from_dict(data)
+    data = data.map(to_encoding)  
     # format the datasets so that we return only 'input_ids', 'attention_mask' and 'labels' 
     # making it easier to train and validate the model
-    training_data.set_format(type='torch', columns=['input_ids', 'attention_mask', 'labels'])
+    data.set_format(type='torch', columns=['input_ids', 'attention_mask', 'labels'])
+    return data
+
+def build_roberta_model_base(training_data,validation_data):
+    training_data = prepared_data(training_data)
+    validation_data = prepared_data(validation_data)
 
     # initialize the model and provide the 'num_labels' used to create the classification layer
     model = RobertaForTokenClassification.from_pretrained(roberta_version, num_labels=len(ent_to_ix))
@@ -101,10 +106,23 @@ def build_roberta_model_base(training_data):
     model.config.id2label = ix_to_ent
     model.config.label2id = ent_to_ix
 
-    return training_data, model
+    return training_data, validation_data, model
 
 
-def train_model(model,dataset,epochs = 3,batch_size = 128,lr = 1e-5):    
+def compute_validation_loss(model, validation_data):
+    model.eval()  # handle drop-out/batch norm layers
+    validation_loader = torch.utils.data.DataLoader(validation_data, batch_size=batch_size)
+    loss = 0
+    with torch.no_grad():
+        for x,y in validation_loader:
+            out = model(x)  # only forward pass - NO gradients!!
+            loss += criterion(out, y)
+        # total loss - divide by number of batches
+        val_loss = loss / len(validation_loader)
+        return val_loss
+
+
+def train_model(model,dataset,val_data,epochs = 3,batch_size = 128,lr = 1e-5):    
     print('-----Preparing for training-----')
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # set the model in 'train' mode and send it to the device
@@ -114,8 +132,9 @@ def train_model(model,dataset,epochs = 3,batch_size = 128,lr = 1e-5):
     model.train().to(device)
     # initialize the Adam optimizer (used for training/updating the model)
     optimizer = optim.AdamW(params=model.parameters(), lr=lr)
-    train_data = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
+    train_data = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
     training_loss = []
+    validation_loss = []
 
     torch.cuda.empty_cache()
     gc.collect() 
@@ -149,9 +168,14 @@ def train_model(model,dataset,epochs = 3,batch_size = 128,lr = 1e-5):
                 current_cases = 0
                 torch.cuda.empty_cache() 
                 gc.collect()
-        training_loss.append(current_loss / curr_cases)
         # update the model one last time for this epoch
         optimizer.step()
         optimizer.zero_grad()
+        #Now we evaluate the model
+        training_loss.append(current_loss / curr_cases)
+        validation_loss.append(compute_validation_loss(model, val_data))
+        #must set model to training again
+        model.train().to(device)
+
     
-    return model,training_loss
+    return model,training_loss,validation_loss

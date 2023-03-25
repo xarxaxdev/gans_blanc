@@ -121,17 +121,23 @@ def main():
         if args.dataset == 'preamble':
             dataset = 'NER_TRAIN_PREAMBLE.json'
         
-        training_data, word_to_ix = build_representation(dataset)
+        val_file = dataset.replace('.json','_VAL.json')  
+        tra_file = dataset.replace('.json','_TRA.json')  
+            
+        (val_data,word_to_ix) = read_raw_python(val_file)
+        (tra_data,word_to_ix) = read_raw_python(tra_file)        
+        
         # get the untrained model
-        prepared_data, model = build_roberta_model_base(training_data)
+        tra_data, val_data, model = build_roberta_model_base(tra_data,val_data)
         # train it to our examples
-        model, training_loss = train_model(model, prepared_data, epochs=epochs, batch_size = batch_size, lr=lr)
-        filename = f'roberta.e{epochs}.bs{batch_size}.lr{lr}'
+        model,val_loss, tra_loss = train_model(model, tra_data, val_data, epochs=epochs, batch_size = batch_size, lr=lr)
+        filename = f'roberta.{dataset}.e{epochs}.bs{batch_size}.lr{lr}'
         print('-----Saving model-----')
         save_model(model,filename)
         print('-----Model saved-----')
-        print('-----Saving model training loss-----')
-        save_plot_train_loss(training_loss, filename)
+        print('-----Saving model loss-----')
+        save_plot_train_loss(tra_loss, filename + '.training')
+        save_plot_train_loss(val_loss, filename + '.validation')
         print('-----Model training loss saved-----')
 
 
