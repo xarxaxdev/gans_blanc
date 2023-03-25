@@ -1,0 +1,20 @@
+BATCHES=4
+EPOCHS=25
+DATASET=judgement
+python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr 0.01
+python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr 0.025
+python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr 0.05
+python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr 0.075
+
+DATASET=preamble
+python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr 0.01
+python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr 0.025
+python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr 0.05
+python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr 0.075
+
+
+#python src/main.py --roberta --epochs 50 --batch 128 --lr 0.01
+#python src/main.py --roberta --epochs 50 --batch 128 --lr 0.025
+#python src/main.py --roberta --epochs 50 --batch 128 --lr 0.05
+#python src/main.py --roberta --epochs 50 --batch 128 --lr 0.075
+

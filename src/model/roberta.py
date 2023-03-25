@@ -118,7 +118,7 @@ def compute_validation_loss(model,device, validation_data, batch_size):
         #for step,(x,y) in enumerate(validation_loader):
         #    out = model(**x)  # only forward pass - NO gradients!!
         #    loss += criterion(out, y)
-        for i, batch in enumerate(tqdm(validation_loader,desc="Validation progress:")):
+        for i, batch in enumerate(tqdm(validation_loader,leave= True, desc="Validation progress:")):
             # move the batch tensors to the same device as the
             batch = { k:v.to(device) for k, v in batch.items() }
             # send 'input_ids', 'attention_mask' and 'labels' to the model
@@ -150,11 +150,11 @@ def train_model(model,dataset,val_data,epochs = 3,batch_size = 128,lr = 1e-5):
     print('-----Beginning to train model...-----')
 
     # iterate through the data 'epochs' times
-    for epoch in tqdm(range(epochs),desc="Epoch progress:"):
+    for epoch in tqdm(range(epochs), leave = False, desc="Epoch progress:"):
         current_loss = 0
         curr_cases = 0
         # iterate through each batch of the train data
-        for i, batch in enumerate(tqdm(train_data,desc="Batch progress:")):
+        for i, batch in enumerate(tqdm(train_data, leave = False, desc="Batch progress:")):
             # move the batch tensors to the same device as the
             batch = { k:v.to(device) for k, v in batch.items() }
             # send 'input_ids', 'attention_mask' and 'labels' to the model
