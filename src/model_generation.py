@@ -123,6 +123,9 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
     # prepare input sequences
     full_data, word_to_ix = build_representation(dataset)
 
+    print(len(full_data))
+    print(full_data[0])
+
     # split
     val_file = dataset.replace('.json','_VAL.json')
     tra_file = dataset.replace('.json','_TRA.json')
@@ -130,10 +133,10 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
     validation_data = read_raw_data(val_file)[0]
     training_data = read_raw_data(tra_file)[0]
 
-    # validation_data = build_data_representation(val_data)
-    # training_data = build_data_representation(tra_data)
-
-    # print(training_data[2])
+    print(len(training_data))
+    print(len(validation_data))
+    print(training_data[0])
+    print(validation_data[0])
 
     # preparing glove word embeddings
     filename = 'glove.6B.50d' 
@@ -150,12 +153,12 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
     bilstm_crf = BiLSTM_CRF(len(word_to_ix), ent_to_ix, embedding_layer, HIDDEN_DIM)
     optimizer = optim.SGD(bilstm_crf.parameters(), lr=lr, weight_decay=1e-4)
     
-    # validation set
-    x  = []
-    y  = []
-    for sentence, targets in validation_data:
-        x.append(prepare_sequence(sentence, word_to_ix))
-        y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
+    # training set
+    x_train = []
+    y_train = []
+    for sentence, targets in training_data:
+        x_train.append(prepare_sequence(sentence, word_to_ix))
+        y_train.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
 
     before_train = time.time()
     time_elapsed = 0
@@ -170,16 +173,14 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
         total_batches = len(training_data) // batch_size + 1 
         print(f'Total batches: {total_batches}')
 
-        # initial batch
-        training_batch = training_data[0 : batch_size]
 
         for j in range(total_batches):
             
             # update batch
             batch_start = j * batch_size
             batch_end = batch_start + batch_size
-            training_batch = list(zip(x,y))[batch_start : batch_end]
-            
+            training_batch = list(zip(x_train, y_train))[batch_start : batch_end]
+
             # training
             print(f"-----Starting batch num:{j+1}-----")
             gradient_descent(training_batch, model=bilstm_crf, optimizer=optimizer)
@@ -191,8 +192,14 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
         time_elapsed += epoch_end
         print("---Time elapsed after {}th epoch: {}---".format(epoch, round(epoch_end, 3)))
 
-        # compute loss
-        validation_loss.append(calculate_loss(bilstm_crf, x, y))
         
-    # check predictions after training
+        # check predictions after training
+        x_validation = []
+        y_validation = []
+        for sentence, targets in validation_data:
+            x_validation.append(prepare_sequence(sentence, word_to_ix))
+            y_validation.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))   
+        
+        validation_loss.append(calculate_loss(bilstm_crf, x_validation, y_validation))
+        
     return bilstm_crf, validation_loss

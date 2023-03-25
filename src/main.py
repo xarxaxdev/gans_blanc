@@ -105,7 +105,7 @@ def main():
                                                                                                         batch_size, lr))
         model, validation_loss = build_lstm_model(epoch_count, batch_size, lr, dataset)
         print(validation_loss)
-        filename = f'bilstm_crf.{dataset}.e{epoch_count}.bs{batch_size}.lr{lr}'
+        filename = f'bilstm_crf.{args.dataset}.e{epoch_count}.bs{batch_size}.lr{lr}'
         print('----- Saving model... -----')
         save_model(model, filename)
         save_plot_train_loss(validation_loss, filename)
