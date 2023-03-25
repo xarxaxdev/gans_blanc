@@ -10,6 +10,11 @@ import os
 import gc
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:2048"
 
+
+BATCH_SIZE_TRAIN_CONCURRENT=4
+BATCH_SIZE_VALIDATE_CONCURRENT=12*BATCH_SIZE_TRAIN_CONCURRENT
+
+
 # huggingface's transformers library
 from transformers import RobertaForTokenClassification, RobertaTokenizer
 
@@ -29,6 +34,7 @@ from utils.IOfunctions import *
 START_TAG = "<START>"
 STOP_TAG = "<STOP>"
 PAD = "<PAD>"
+
 
 # entity to index dictionary
 ent_to_ix = {
@@ -109,9 +115,9 @@ def build_roberta_model_base(training_data,validation_data):
     return training_data, validation_data, model
 
 
-def compute_validation_loss(model,device, validation_data, batch_size):
+def compute_validation_loss(model,device, validation_data):
     model.eval()  # handle drop-out/batch norm layers
-    validation_loader = torch.utils.data.DataLoader(validation_data, batch_size=12*batch_size)
+    validation_loader = torch.utils.data.DataLoader(validation_data, batch_size=BATCH_SIZE_VALIDATE_CONCURRENT)
     current_loss = 0
     curr_cases = 0
     with torch.no_grad():
@@ -126,7 +132,7 @@ def compute_validation_loss(model,device, validation_data, batch_size):
             # the outputs are of shape (loss, logits)
             loss = outputs[0]
             current_loss += loss.item()
-            curr_cases += batch_size
+            curr_cases += BATCH_SIZE_VALIDATE_CONCURRENT
             
         
         # total loss - divide by number of batches
@@ -141,7 +147,7 @@ def train_model(model,dataset,val_data,epochs = 3,batch_size = 128,lr = 1e-5):
     model.train().to(device)
     # initialize the Adam optimizer (used for training/updating the model)
     optimizer = optim.AdamW(params=model.parameters(), lr=lr)
-    train_data = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    train_data = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE_TRAIN_CONCURRENT, shuffle=True)
     training_loss = []
     validation_loss = []
 
@@ -165,8 +171,8 @@ def train_model(model,dataset,val_data,epochs = 3,batch_size = 128,lr = 1e-5):
             # of  the gradients used for autograd
             loss.backward()
             current_loss += loss.item()
-            curr_cases += batch_size
-            if i % 128 == 0 and i > 0:#update every i*batch_size
+            curr_cases += BATCH_SIZE_TRAIN_CONCURRENT  
+            if i % batch_size == 0 and i > 0:#update every batch_size
                 # update the model using the optimizer
                 optimizer.step()
                 # once we update the model we set the gradients to zero
@@ -187,7 +193,7 @@ def train_model(model,dataset,val_data,epochs = 3,batch_size = 128,lr = 1e-5):
         optimizer.zero_grad()
         #Now we evaluate the model
         training_loss.append(current_loss / curr_cases)
-        validation_loss.append(compute_validation_loss(model, device,val_data,batch_size))
+        validation_loss.append(compute_validation_loss(model, device,val_data))
         #must set model to training again, validation deactivates training
         model.train().to(device)
 

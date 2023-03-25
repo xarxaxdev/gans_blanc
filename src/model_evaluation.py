@@ -70,6 +70,10 @@ def evaluate_model(model_path, dataset):
     for sentence, targets in test_data:
         x.append(prepare_sequence(sentence, word_to_ix))
         y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
+
+    batch = model_path.split(".")[2]
+    #batch_size = int("".join(list(filter(str.isdigit, batch))))
+    #total_batches = len(test_data) // batch_size + 1 
     
     print("-----Running through test data-----")
     for i in range(len(x)):
