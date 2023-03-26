@@ -80,7 +80,7 @@ def evaluate_model(model_path, dataset):
         print(i)
         print(model(x[i]))
         y_hat.append(torch.tensor(model(x[i])[1]))
-
+        
     prediction = torch.cat(y_hat)
     target = torch.cat(y)
 
@@ -94,3 +94,67 @@ def evaluate_model(model_path, dataset):
     print(recall)
     print(target[100:300])
     print(prediction[100:300])
+
+
+
+
+def evaluate_model_roberta(model_path, dataset):
+    
+    # model initialization
+    if dataset == 'NER_DEV_JUDGEMENT.json':
+        _, word_to_ix = build_representation('NER_TRAIN_JUDGEMENT.json')
+    if dataset == 'NER_DEV_PREAMBLE.json':
+        _, word_to_ix = build_representation('NER_TRAIN_PREAMBLE.json')
+    
+    # update test data to representation
+    raw_data = read_raw_data(dataset)
+    test_data = build_data_representation(raw_data)
+
+    # randomly assign unknown words to word_to_ix
+    for sentence, tags in test_data:
+        for word in sentence:
+            if word not in word_to_ix:
+                word_to_ix[word] = random.randint(0, 100)
+    
+    # load model
+    print("-----Loading model-----")
+    model = load_model(model_path)
+    model.eval()
+    print("-----Model loaded-----")
+
+    #x = []
+    #y = []
+    #for sentence, targets in test_data:
+    #    x.append(prepare_sequence(sentence, word_to_ix))
+    #    y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
+    test_data = prepare_data(test_data,'testing')
+    test_loader = torch.utils.data.DataLoader(test_data, batch_size=1)
+    print("-----Running through test data-----")    
+    for i, batch in enumerate(tqdm(test_loader,leave= False, desc="Testing progress:")):
+        with torch.no_grad():
+            # move the batch tensors to the same device as the
+            batch = { k:v.to(device) for k, v in batch.items() }
+            # send 'input_ids', 'attention_mask' and 'labels' to the model
+            outputs = model(**batch)
+            # the outputs are of shape (loss, logits)
+            
+    yhat = []
+    for i in range(len(x)):
+        print(i)
+        print(model(x[i]))
+        y_hat.append(torch.tensor(model(x[i])[1]))
+        
+    prediction = torch.cat(y_hat)
+    target = torch.cat(y)
+
+    print("-----Computing scores-----")
+
+    f1 = compute_f1(prediction, target)
+    precision = compute_pre(prediction, target)
+    recall = compute_rec(prediction, target)
+    print(f1)
+    print(precision)
+    print(recall)
+    print(target[100:300])
+    print(prediction[100:300])
+

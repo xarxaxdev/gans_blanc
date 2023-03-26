@@ -93,7 +93,7 @@ def to_encoding(row):
 
 
 def prepare_data(data,dataset_type):
-    data = [{'sentence': i[0],'labels': i[1]} for i in data]
+    data = [{'sentence': i[0],'labels': i[1]} for i in data if len(i[0]) <= 512]
     data = {key: [d[key] for d in data] for key in data[0]}
     data = datasets.Dataset.from_dict(data)
     data = data.map(to_encoding,desc= f'Mapping {dataset_type} dataset')  
