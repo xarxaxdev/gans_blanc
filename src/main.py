@@ -74,16 +74,16 @@ def main():
     if args.split_datasets:
         random.seed(123)
         val_split= 0.3
-        for dataset in ['NER_TRAIN_JUDGEMENT.json','NER_TRAIN_PREAMBLE.json']:
+        for dataset in ['NER_TRAIN_JUDGEMENT.json', 'NER_TRAIN_PREAMBLE.json']:
             training_data, word_to_ix = build_representation(dataset)
-            validation_file = dataset.replace('.json','_VAL.json')  
-            training_file = dataset.replace('.json','_TRA.json')  
+            validation_file = dataset.replace('.json', '_VAL.json')  
+            training_file = dataset.replace('.json', '_TRA.json')  
             random.shuffle(training_data)
-            split_index = round(val_split*len(training_data))
-            validation_data = (training_data[:split_index],word_to_ix)
-            training_data = (training_data[split_index:],word_to_ix)
-            save_raw_python(validation_data,validation_file)
-            save_raw_python(training_data,training_file)        
+            split_index = round(val_split * len(training_data))
+            validation_data = (training_data[:split_index], word_to_ix)
+            training_data = (training_data[split_index:], word_to_ix)
+            save_raw_python(validation_data, validation_file)
+            save_raw_python(training_data, training_file)        
 
 
     if args.download_glove:
@@ -124,9 +124,12 @@ def main():
         val_file = dataset.replace('.json','_VAL.json')  
         tra_file = dataset.replace('.json','_TRA.json')  
             
-        (val_data,word_to_ix) = read_raw_python(val_file)
-        (tra_data,word_to_ix) = read_raw_python(tra_file)        
-        
+        (val_data, word_to_ix) = read_raw_python(val_file)
+        (tra_data, word_to_ix) = read_raw_python(tra_file) 
+      
+        val_data = start_stop_tagging(val_data)
+        tra_data = start_stop_tagging(tra_data)
+ 
         # get the untrained model
         tra_data, val_data, model = build_roberta_model_base(tra_data,val_data)
         # train it to our examples
