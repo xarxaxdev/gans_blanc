@@ -11,7 +11,7 @@ import gc
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:2048"
 
 
-BATCH_SIZE_TRAIN_CONCURRENT=4
+BATCH_SIZE_TRAIN_CONCURRENT=8
 BATCH_SIZE_VALIDATE_CONCURRENT=12*BATCH_SIZE_TRAIN_CONCURRENT
 
 
@@ -103,9 +103,10 @@ def prepare_data(data,dataset_type):
     return data
 
 def build_roberta_model_base(training_data,validation_data):
+    training_data = training_data[:10]
+    validation_data = training_data
     training_data = prepare_data(training_data,'training')
     validation_data = prepare_data(validation_data,'validation')
-    
     # initialize the model and provide the 'num_labels' used to create the classification layer
     model = RobertaForTokenClassification.from_pretrained(roberta_version, num_labels=len(ent_to_ix))
     # assign the 'id2label' and 'label2id' model configs

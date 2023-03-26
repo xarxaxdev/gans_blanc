@@ -110,8 +110,10 @@ def evaluate_model_roberta(model_path, dataset):
     
     # update test data to representation
     raw_data = read_raw_data(dataset)
-    test_data = build_data_representation(raw_data)
 
+    test_data = build_data_representation(raw_data)
+    test_data = start_stop_tagging(test_data)
+    #test_data = test_data[2:10]
     # randomly assign unknown words to word_to_ix
     for sentence, tags in test_data:
         for word in sentence:
@@ -141,13 +143,17 @@ def evaluate_model_roberta(model_path, dataset):
         with torch.no_grad():
             # move the batch tensors to the same device as the
             batch = { k:v.to(device) for k, v in batch.items() }
+            #print(batch)
+            #assert(False)
             # send 'input_ids', 'attention_mask' and 'labels' to the model
             outputs = model(**batch)
             # the outputs are of shape (loss, logits)
         length = batch['attention_mask'].sum(dim=1)[0]
-        #print('----outputs----')
+        #print('----argmax----')
         #print(outputs)
+        #print(torch.argmax(outputs[1], dim=2))
         #print('----')
+        #assert(False)
         pred_values = torch.argmax(outputs[1], dim=2)[0][:length]
         #print('----pred_values----')
         #print(pred_values)
@@ -173,4 +179,5 @@ def evaluate_model_roberta(model_path, dataset):
     print('F1 score:', f1)
     print('Precision:', precision)
     print('Recall:', recall)
-
+    print(y[0])
+    print(y_hat[0])
