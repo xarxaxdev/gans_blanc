@@ -30,15 +30,15 @@ def save_plot_train_loss(train_loss, filename):
 
 
 def compute_f1(prediction, target):
-    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average=None)
+    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
     return metric(prediction, target)
 
 def compute_pre(prediction, target):
-    metric = MulticlassPrecision(num_classes=len(ent_to_ix), average=None)
+    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
     return metric(prediction, target)
 
 def compute_rec(prediction, target):
-    metric = MulticlassRecall(num_classes=len(ent_to_ix), average=None)
+    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
     return metric(prediction, target)
 
 
@@ -78,8 +78,8 @@ def evaluate_model(model_path, dataset):
     
     print("-----Running through test data-----")
     for i in range(len(x)):
-        print(i)
-        print(model(x[i]))
+        # print(i)
+        # print(model(x[i]))
         y_hat.append(torch.tensor(model(x[i])[1]))
         
     prediction = torch.cat(y_hat)
@@ -90,11 +90,12 @@ def evaluate_model(model_path, dataset):
     f1 = compute_f1(prediction, target)
     precision = compute_pre(prediction, target)
     recall = compute_rec(prediction, target)
-    print(f1)
-    print(precision)
-    print(recall)
-    print(target[100:300])
-    print(prediction[100:300])
+    
+    print('F1 score:', f1)
+    print('Precision:', precision)
+    print('Recall:', recall)
+
+
 
 
 
@@ -154,6 +155,7 @@ def evaluate_model_roberta(model_path, dataset):
         y_hat.append(pred_values)
         true_values = batch['labels'][0][:length]
         y.append(true_values)
+    
     #for i in range(len(x)):
         #print(i)
         #print(model(x[i]))
@@ -167,9 +169,8 @@ def evaluate_model_roberta(model_path, dataset):
     f1 = compute_f1(prediction, target)
     precision = compute_pre(prediction, target)
     recall = compute_rec(prediction, target)
-    print(f1)
-    print(precision)
-    print(recall)
-    print(target[100:300])
-    print(prediction[100:300])
+    
+    print('F1 score:', f1)
+    print('Precision:', precision)
+    print('Recall:', recall)
 
