@@ -150,7 +150,10 @@ def main():
             dataset = 'NER_DEV_JUDGEMENT.json'
         if args.dataset == 'preamble':
             dataset = 'NER_DEV_PREAMBLE.json'
-        evaluate_model(model, dataset)
+        if 'roberta' in model:
+            evaluate_model_roberta(model,dataset)
+        else:
+            evaluate_model(model, dataset)
 
 
 if __name__ == '__main__':

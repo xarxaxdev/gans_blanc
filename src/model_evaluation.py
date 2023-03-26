@@ -7,6 +7,8 @@ from model_generation import ent_to_ix
 from utils.IOfunctions import *
 from utils.NLP_utils import *
 from model_generation import *
+from model.roberta import prepare_data
+from tqdm import tqdm
 
 
 def save_plot_train_loss(train_loss, filename):
@@ -126,22 +128,36 @@ def evaluate_model_roberta(model_path, dataset):
     #for sentence, targets in test_data:
     #    x.append(prepare_sequence(sentence, word_to_ix))
     #    y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     test_data = prepare_data(test_data,'testing')
+
     test_loader = torch.utils.data.DataLoader(test_data, batch_size=1)
     print("-----Running through test data-----")    
+    y_hat = []
+    y = []
     for i, batch in enumerate(tqdm(test_loader,leave= False, desc="Testing progress:")):
+        #print(test_data[i])
         with torch.no_grad():
             # move the batch tensors to the same device as the
             batch = { k:v.to(device) for k, v in batch.items() }
             # send 'input_ids', 'attention_mask' and 'labels' to the model
             outputs = model(**batch)
             # the outputs are of shape (loss, logits)
-            
-    yhat = []
-    for i in range(len(x)):
-        print(i)
-        print(model(x[i]))
-        y_hat.append(torch.tensor(model(x[i])[1]))
+        length = batch['attention_mask'].sum(dim=1)[0]
+        #print('----outputs----')
+        #print(outputs)
+        #print('----')
+        pred_values = torch.argmax(outputs[1], dim=2)[0][:length]
+        #print('----pred_values----')
+        #print(pred_values)
+        #print('----')
+        y_hat.append(pred_values)
+        true_values = batch['labels'][0][:length]
+        y.append(true_values)
+    #for i in range(len(x)):
+        #print(i)
+        #print(model(x[i]))
+        #y_hat.append(torch.tensor(model(x[i])[1]))
         
     prediction = torch.cat(y_hat)
     target = torch.cat(y)
