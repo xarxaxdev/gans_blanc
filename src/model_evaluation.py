@@ -34,11 +34,11 @@ def compute_f1(prediction, target):
     return metric(prediction, target)
 
 def compute_pre(prediction, target):
-    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
+    metric = MulticlassPrecision(num_classes=len(ent_to_ix), average='macro')
     return metric(prediction, target)
 
 def compute_rec(prediction, target):
-    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
+    metric = MulticlassRecall(num_classes=len(ent_to_ix), average='macro')
     return metric(prediction, target)
 
 
