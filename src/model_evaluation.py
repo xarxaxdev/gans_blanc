@@ -28,15 +28,15 @@ def save_plot_train_loss(train_loss, filename):
 
 
 def compute_f1(prediction, target):
-    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
+    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average=None)
     return metric(prediction, target)
 
 def compute_pre(prediction, target):
-    metric = MulticlassPrecision(num_classes=len(ent_to_ix), average='macro')
+    metric = MulticlassPrecision(num_classes=len(ent_to_ix), average=None)
     return metric(prediction, target)
 
 def compute_rec(prediction, target):
-    metric = MulticlassRecall(num_classes=len(ent_to_ix), average='macro')
+    metric = MulticlassRecall(num_classes=len(ent_to_ix), average=None)
     return metric(prediction, target)
 
 
@@ -47,6 +47,8 @@ def evaluate_model(model_path, dataset):
         _, word_to_ix = build_representation('NER_TRAIN_JUDGEMENT.json')
     if dataset == 'NER_DEV_PREAMBLE.json':
         _, word_to_ix = build_representation('NER_TRAIN_PREAMBLE.json')
+    
+    dataset = 'NER_TRAIN_JUDGEMENT.json'
     
     # update test data to representation
     raw_data = read_raw_data(dataset)
@@ -71,9 +73,6 @@ def evaluate_model(model_path, dataset):
         x.append(prepare_sequence(sentence, word_to_ix))
         y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
 
-    batch = model_path.split(".")[2]
-    #batch_size = int("".join(list(filter(str.isdigit, batch))))
-    #total_batches = len(test_data) // batch_size + 1 
     
     print("-----Running through test data-----")
     for i in range(len(x)):

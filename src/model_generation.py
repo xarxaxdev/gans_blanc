@@ -12,6 +12,7 @@ import random
 HIDDEN_DIM=2
 
 torch.manual_seed(1)
+random.seed(10)
 
 START_TAG = "<START>"
 STOP_TAG = "<STOP>"
@@ -88,15 +89,16 @@ def create_emb_layer(weights_matrix, non_trainable=False):
 
 def gradient_descent(training_data, model, optimizer):
     for sentence, tags in training_data:
+
         # clear gradients before each data instance
         model.zero_grad()
 
         # compute loss
         loss = model.neg_log_likelihood(sentence, tags)
-
+        
         # run backward step
         loss.backward()
-
+        
     optimizer.step()
     
 
@@ -121,10 +123,8 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
     validation_loss = []
 
     # prepare input sequences
-    full_data, word_to_ix = build_representation(dataset)
-
-    # print(len(full_data))
-    # print(full_data[0])
+    
+    training_data, word_to_ix = build_representation(dataset)
 
     # split
     val_file = dataset.replace('.json','_VAL.json')
@@ -133,10 +133,13 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
     validation_data = read_raw_data(val_file)[0]
     training_data = read_raw_data(tra_file)[0]
 
-    # print(len(training_data))
-    # print(len(validation_data))
-    # print(training_data[0])
-    # print(validation_data[0])
+    # prepare validation set
+    x_validation = []
+    y_validation = []
+    for sentence, targets in validation_data:
+        x_validation.append(prepare_sequence(sentence, word_to_ix))
+        y_validation.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))
+    
 
     # preparing glove word embeddings
     filename = 'glove.6B.50d' 
@@ -166,8 +169,7 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
         for sentence, targets in training_data:
             x_train.append(prepare_sequence(sentence, word_to_ix))
             y_train.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long)) 
-        print(x_train[0])
-        print(y_train[0])
+
            
         print("---Starting epoch {}---".format(epoch))
         epoch_start = time.time()
@@ -195,12 +197,6 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
 
         
         # check predictions after training
-        x_validation = []
-        y_validation = []
-        for sentence, targets in validation_data:
-            x_validation.append(prepare_sequence(sentence, word_to_ix))
-            y_validation.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))   
-        
         validation_loss.append(calculate_loss(bilstm_crf, x_validation, y_validation))
         
     return bilstm_crf, validation_loss
