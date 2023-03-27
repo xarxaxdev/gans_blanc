@@ -31,20 +31,40 @@ def save_plot_train_loss(train_loss, filename):
     #plt.show()
 
 
-def compute_f1(prediction, target):
-    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
-    return metric(prediction, target)
+# def compute_f1(prediction, target):
+#     metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
+#     return metric(prediction, target)
 
-def compute_pre(prediction, target):
-    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
-    return metric(prediction, target)
+# def compute_pre(prediction, target):
+#     metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
+#     return metric(prediction, target)
 
-def compute_rec(prediction, target):
-    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
-    return metric(prediction, target)
+# def compute_rec(prediction, target):
+#     metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
+#     return metric(prediction, target)
+
+def flatten(l):
+    return [item for sublist in l for item in sublist]
 
 
-def evaluate_model(model_path, dataset):
+def compute_score(y_hat, y, avg):
+    y = flatten(y)
+    y_hat = flatten(y_hat)
+
+    f1_metric = load('f1')
+    precision_metric = load('precision')
+    recall_metric = load('recall')
+    
+    f1 = f1_metric.compute(predictions=y_hat, references=y, average=avg)
+    precision = precision_metric.compute(predictions=y_hat, references=y, average=avg)
+    recall = recall_metric.compute(predictions=y_hat, references=y, average=avg)
+    
+    return f1, precision, recall
+
+
+
+
+def evaluate_model_bilstm_crf(model_path, dataset):
     
     # model initialization
     if dataset == 'NER_DEV_JUDGEMENT.json':
@@ -83,21 +103,20 @@ def evaluate_model(model_path, dataset):
         # print(i)
         # print(model(x[i]))
         y_hat.append(torch.tensor(model(x[i])[1]))
-        
-    prediction = torch.cat(y_hat)
-    target = torch.cat(y)
-
-    print("-----Computing scores-----")
-
-    f1 = compute_f1(prediction, target)
-    precision = compute_pre(prediction, target)
-    recall = compute_rec(prediction, target)
     
+
+    # computing scores
+    f1, precision, recall = compute_score(y_hat, y, 'macro')
+
     print('F1 score:', f1)
     print('Precision:', precision)
     print('Recall:', recall)
 
+    f1, precision, recall = compute_score(y_hat, y, None)
 
+    print('F1 score:', f1)
+    print('Precision:', precision)
+    print('Recall:', recall)
 
 
 
@@ -149,23 +168,16 @@ def evaluate_model_roberta(model_path, dataset):
         y_hat.append(pred_values[:length])
         y.append(true_values[:length])    
 
-    def flatten(l):
-        return [item for sublist in l for item in sublist]
-    
-    y = flatten(y)
-    y_hat = flatten(y_hat)
 
-    print("-----Computing scores-----")
-    f1_metric = load('f1')
-    precision_metric = load('precision')
-    recall_metric = load('recall')
+    # computing scores
+    f1, precision, recall = compute_score(y_hat, y, 'macro')
 
-    avg= None#'macro'    
-    f1 = f1_metric.compute(predictions=y_hat, references= y, average=avg)
-    precision = precision_metric.compute(predictions= y_hat, references= y, average=avg)
-    recall = recall_metric.compute(predictions=y_hat, references= y, average=avg)
-    
     print('F1 score:', f1)
     print('Precision:', precision)
     print('Recall:', recall)
 
+    f1, precision, recall = compute_score(y_hat, y, None)
+
+    print('F1 score:', f1)
+    print('Precision:', precision)
+    print('Recall:', recall)

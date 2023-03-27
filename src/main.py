@@ -152,8 +152,8 @@ def main():
             dataset = 'NER_DEV_PREAMBLE.json'
         if 'roberta' in model:
             evaluate_model_roberta(model,dataset)
-        else:
-            evaluate_model(model, dataset)
+        if 'bilstm_crf' in model:
+            evaluate_model_bilstm_crf(model, dataset)
 
 
 if __name__ == '__main__':
