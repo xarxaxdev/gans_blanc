@@ -11,7 +11,7 @@ import gc
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:2048"
 
 
-BATCH_SIZE_TRAIN_CONCURRENT=16
+BATCH_SIZE_TRAIN_CONCURRENT=4
 BATCH_SIZE_VALIDATE_CONCURRENT=12*BATCH_SIZE_TRAIN_CONCURRENT
 
 
@@ -30,65 +30,48 @@ sys.path.insert(1, '/src/utils')
 from utils.NLP_utils import *
 from utils.IOfunctions import *
 
+roberta_version = 'distilroberta-base'
+tokenizer = RobertaTokenizer.from_pretrained(roberta_version)
+PAD = tokenizer.pad_token
 
-START_TAG = "<START>"
-STOP_TAG = "<STOP>"
-#PAD = "<PAD>"
 
+
+
+entities = ['COURT','PETITIONER','RESPONDENT','JUDGE','LAWYER','DATE','ORG',
+'GPE','STATUTE','PROVISION','PRECEDENT','CASE_NUMBER','WITNESS','OTHER_PERSON']
 
 # entity to index dictionary
-ent_to_ix = {
-    #PAD:0,
-    "O": 0,
-    START_TAG: 1,
-    STOP_TAG: 2,
-    
-    "B-COURT": 3,
-    "B-PETITIONER": 4,
-    "B-RESPONDENT": 5,
-    "B-JUDGE": 6,
-    "B-LAWYER": 7,
-    "B-DATE": 8,
-    "B-ORG": 9,
-    "B-GPE": 10,
-    "B-STATUTE": 11,
-    "B-PROVISION": 12,
-    "B-PRECEDENT": 13,
-    "B-CASE_NUMBER": 14,
-    "B-WITNESS": 15,
-    "B-OTHER_PERSON": 16,
-    
-    "I-COURT": 17,
-    "I-PETITIONER": 18,
-    "I-RESPONDENT": 19,
-    "I-JUDGE": 20,
-    "I-LAWYER": 21,
-    "I-DATE": 22,
-    "I-ORG": 23,
-    "I-GPE": 24,
-    "I-STATUTE": 25,
-    "I-PROVISION": 26,
-    "I-PRECEDENT": 27,
-    "I-CASE_NUMBER": 28,
-    "I-WITNESS": 29,
-    "I-OTHER_PERSON": 30,
-}
+ent_to_ix = {'O':0, PAD:-100} #-100 is the ignore_index default 
 ix_to_ent = {}
+i = 1
+for ent in entities:
+    ent_to_ix[f'B-{ent}']= i
+    i+=1
+    ent_to_ix[f'I-{ent}'] = i 
+    i+=1 
 for ent in ent_to_ix:
     ix_to_ent[ent_to_ix[ent]] = ent
 
-
-roberta_version = 'distilroberta-base'
-tokenizer = RobertaTokenizer.from_pretrained(roberta_version)
+for k in sorted(ix_to_ent.keys()):
+    print(f'{k}: {ix_to_ent[k]}')
 
 def to_encoding(row):
     #turn tokens into Roberta input, pad, add attention mask
     encodings = tokenizer(row['sentence'], truncation=True, padding='max_length', is_split_into_words=True)
-    row['sentence'] = row['sentence'] #+ [PAD] * (tokenizer.model_max_length - len(row['sentence']))
+    #row['sentence'] = row['sentence'] #+ [PAD] * (tokenizer.model_max_length - len(row['sentence']))
     # pad tags to max possible length
-    labels = row['labels'] + ["O"] * (tokenizer.model_max_length - len(row['labels']))
+    #print(encodings.attention_mask)
+    #encodings.attention_mask = ( encodings.attention_mask encodings.inpu
+    #print(encodings.attention_mask)
+    labels = row['labels'] + [tokenizer.pad_token] * (tokenizer.model_max_length - len(row['labels']))
     labels = [ ent_to_ix[i] for i in labels]
     labels = torch.from_numpy(np.asarray(labels))
+    #print(labels)
+    #print(encodings.input_ids)
+    #print(len([x for x in labels if x!= -100]))
+    #print(len([x for x in encodings.input_ids if x !=1 ]))
+    #assert(False)
+    #labels = torch.where(encodings.input_ids== labe.pad_token,labels,-100)
     return { **encodings, 'labels': labels }
 
 
@@ -103,16 +86,20 @@ def prepare_data(data,dataset_type):
     return data
 
 def build_roberta_model_base(training_data,validation_data):
-    #training_data = training_data[:10]
-    #validation_data = validation_data[:10]
-    training_data = prepare_data(training_data,'training')
-    validation_data = prepare_data(validation_data,'validation')
     # initialize the model and provide the 'num_labels' used to create the classification layer
     model = RobertaForTokenClassification.from_pretrained(roberta_version, num_labels=len(ent_to_ix))
+    #if tokenizer.pad_token is None:
+    #    tokenizer.add_special_tokens({'pad_token': PAD})
+    #    model.resize_token_embeddings(len(tokenizer))
     # assign the 'id2label' and 'label2id' model configs
     model.config.id2label = ix_to_ent
     model.config.label2id = ent_to_ix
 
+    #training_data = training_data[:100]
+    #validation_data = validation_data[:30]
+    training_data = prepare_data(training_data,'training')
+    validation_data = prepare_data(validation_data,'validation')
+    
     return training_data, validation_data, model
 
 
@@ -168,12 +155,19 @@ def train_model(model,dataset,val_data,epochs = 3,batch_size = 128,lr = 1e-5):
             outputs = model(**batch)
             # the outputs are of shape (loss, logits)
             loss = outputs[0]
+            if i == 0 :
+                print(batch['input_ids'][0])
+            #loss_mask = tags
+            #if i%10 == 0 and i> 0:
+            #    length = batch['attention_mask'].sum(dim=1)[0]
+            #    pred_values = torch.argmax(outputs[1], dim=2)[0][:length]
+            #    print(pred_values)            
             # with the .backward method it calculates all 
             # of  the gradients used for autograd
             loss.backward()
             current_loss += loss.item()
             curr_cases += BATCH_SIZE_TRAIN_CONCURRENT  
-            if i % batch_size == 0 and i > 0:#update every batch_size
+            if curr_cases % batch_size == 0 and i > 0:#update every batch_size
                 # update the model using the optimizer
                 optimizer.step()
                 # once we update the model we set the gradients to zero
