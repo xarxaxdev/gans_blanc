@@ -104,16 +104,16 @@ def evaluate_model_roberta(model_path, dataset):
     
     # model initialization
     if dataset == 'NER_DEV_JUDGEMENT.json':
-        _, word_to_ix = build_representation('NER_TRAIN_JUDGEMENT.json')
+        _, word_to_ix = build_representation('NER_DEV_JUDGEMENT.json')
     if dataset == 'NER_DEV_PREAMBLE.json':
-        _, word_to_ix = build_representation('NER_TRAIN_PREAMBLE.json')
+        _, word_to_ix = build_representation('NER_DEV_PREAMBLE.json')
     
     # update test data to representation
     raw_data = read_raw_data(dataset)
 
     test_data = build_data_representation(raw_data)
     test_data = start_stop_tagging(test_data)
-    #test_data = test_data[2:10]
+    test_data = test_data[:100]
     # randomly assign unknown words to word_to_ix
     for sentence, tags in test_data:
         for word in sentence:
@@ -126,11 +126,6 @@ def evaluate_model_roberta(model_path, dataset):
     model.eval()
     print("-----Model loaded-----")
 
-    #x = []
-    #y = []
-    #for sentence, targets in test_data:
-    #    x.append(prepare_sequence(sentence, word_to_ix))
-    #    y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     test_data = prepare_data(test_data,'testing')
 
@@ -139,34 +134,18 @@ def evaluate_model_roberta(model_path, dataset):
     y_hat = []
     y = []
     for i, batch in enumerate(tqdm(test_loader,leave= False, desc="Testing progress:")):
-        #print(test_data[i])
         with torch.no_grad():
             # move the batch tensors to the same device as the
             batch = { k:v.to(device) for k, v in batch.items() }
-            #print(batch)
-            #assert(False)
             # send 'input_ids', 'attention_mask' and 'labels' to the model
             outputs = model(**batch)
             # the outputs are of shape (loss, logits)
         length = batch['attention_mask'].sum(dim=1)[0]
-        #print('----argmax----')
-        #print(outputs)
-        #print(torch.argmax(outputs[1], dim=2))
-        #print('----')
-        #assert(False)
         pred_values = torch.argmax(outputs[1], dim=2)[0][:length]
-        #print('----pred_values----')
-        #print(pred_values)
-        #print('----')
         y_hat.append(pred_values)
         true_values = batch['labels'][0][:length]
         y.append(true_values)
-    
-    #for i in range(len(x)):
-        #print(i)
-        #print(model(x[i]))
-        #y_hat.append(torch.tensor(model(x[i])[1]))
-        
+            
     prediction = torch.cat(y_hat)
     target = torch.cat(y)
 

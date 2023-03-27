@@ -11,7 +11,7 @@ import gc
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:2048"
 
 
-BATCH_SIZE_TRAIN_CONCURRENT=8
+BATCH_SIZE_TRAIN_CONCURRENT=16
 BATCH_SIZE_VALIDATE_CONCURRENT=12*BATCH_SIZE_TRAIN_CONCURRENT
 
 
@@ -33,45 +33,45 @@ from utils.IOfunctions import *
 
 START_TAG = "<START>"
 STOP_TAG = "<STOP>"
-PAD = "<PAD>"
+#PAD = "<PAD>"
 
 
 # entity to index dictionary
 ent_to_ix = {
-    PAD:0,
-    "O": 1,
-    START_TAG: 2,
-    STOP_TAG: 3,
+    #PAD:0,
+    "O": 0,
+    START_TAG: 1,
+    STOP_TAG: 2,
     
-    "B-COURT": 4,
-    "B-PETITIONER": 5,
-    "B-RESPONDENT": 6,
-    "B-JUDGE": 7,
-    "B-LAWYER": 8,
-    "B-DATE": 9,
-    "B-ORG": 10,
-    "B-GPE": 11,
-    "B-STATUTE": 12,
-    "B-PROVISION": 13,
-    "B-PRECEDENT": 14,
-    "B-CASE_NUMBER": 15,
-    "B-WITNESS": 16,
-    "B-OTHER_PERSON": 17,
+    "B-COURT": 3,
+    "B-PETITIONER": 4,
+    "B-RESPONDENT": 5,
+    "B-JUDGE": 6,
+    "B-LAWYER": 7,
+    "B-DATE": 8,
+    "B-ORG": 9,
+    "B-GPE": 10,
+    "B-STATUTE": 11,
+    "B-PROVISION": 12,
+    "B-PRECEDENT": 13,
+    "B-CASE_NUMBER": 14,
+    "B-WITNESS": 15,
+    "B-OTHER_PERSON": 16,
     
-    "I-COURT": 18,
-    "I-PETITIONER": 19,
-    "I-RESPONDENT": 20,
-    "I-JUDGE": 21,
-    "I-LAWYER": 22,
-    "I-DATE": 23,
-    "I-ORG": 24,
-    "I-GPE": 25,
-    "I-STATUTE": 26,
-    "I-PROVISION": 27,
-    "I-PRECEDENT": 28,
-    "I-CASE_NUMBER": 29,
-    "I-WITNESS": 30,
-    "I-OTHER_PERSON": 31,
+    "I-COURT": 17,
+    "I-PETITIONER": 18,
+    "I-RESPONDENT": 19,
+    "I-JUDGE": 20,
+    "I-LAWYER": 21,
+    "I-DATE": 22,
+    "I-ORG": 23,
+    "I-GPE": 24,
+    "I-STATUTE": 25,
+    "I-PROVISION": 26,
+    "I-PRECEDENT": 27,
+    "I-CASE_NUMBER": 28,
+    "I-WITNESS": 29,
+    "I-OTHER_PERSON": 30,
 }
 ix_to_ent = {}
 for ent in ent_to_ix:
@@ -84,9 +84,9 @@ tokenizer = RobertaTokenizer.from_pretrained(roberta_version)
 def to_encoding(row):
     #turn tokens into Roberta input, pad, add attention mask
     encodings = tokenizer(row['sentence'], truncation=True, padding='max_length', is_split_into_words=True)
-    row['sentence'] = row['sentence'] + [PAD] * (tokenizer.model_max_length - len(row['sentence']))
+    row['sentence'] = row['sentence'] #+ [PAD] * (tokenizer.model_max_length - len(row['sentence']))
     # pad tags to max possible length
-    labels = row['labels'] + [PAD] * (tokenizer.model_max_length - len(row['labels']))
+    labels = row['labels'] + ["O"] * (tokenizer.model_max_length - len(row['labels']))
     labels = [ ent_to_ix[i] for i in labels]
     labels = torch.from_numpy(np.asarray(labels))
     return { **encodings, 'labels': labels }
@@ -103,8 +103,8 @@ def prepare_data(data,dataset_type):
     return data
 
 def build_roberta_model_base(training_data,validation_data):
-    training_data = training_data[:10]
-    validation_data = training_data
+    #training_data = training_data[:10]
+    #validation_data = validation_data[:10]
     training_data = prepare_data(training_data,'training')
     validation_data = prepare_data(validation_data,'validation')
     # initialize the model and provide the 'num_labels' used to create the classification layer
