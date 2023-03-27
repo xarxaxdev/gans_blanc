@@ -10,6 +10,8 @@ from model_generation import *
 from model.roberta import prepare_data
 from tqdm import tqdm
 
+from evaluate import load
+
 
 def save_plot_train_loss(train_loss, filename):
     epochs = len(train_loss)
@@ -34,11 +36,11 @@ def compute_f1(prediction, target):
     return metric(prediction, target)
 
 def compute_pre(prediction, target):
-    metric = MulticlassPrecision(num_classes=len(ent_to_ix), average='macro')
+    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
     return metric(prediction, target)
 
 def compute_rec(prediction, target):
-    metric = MulticlassRecall(num_classes=len(ent_to_ix), average='macro')
+    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
     return metric(prediction, target)
 
 
@@ -112,51 +114,58 @@ def evaluate_model_roberta(model_path, dataset):
     raw_data = read_raw_data(dataset)
 
     test_data = build_data_representation(raw_data)
-    test_data = start_stop_tagging(test_data)
-    test_data = test_data[:100]
+    #test_data = start_stop_tagging(test_data)
+    #test_data = test_data[:10]
     # randomly assign unknown words to word_to_ix
     for sentence, tags in test_data:
         for word in sentence:
             if word not in word_to_ix:
                 word_to_ix[word] = random.randint(0, 100)
     
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = 'cpu'
     # load model
     print("-----Loading model-----")
     model = load_model(model_path)
-    model.eval()
+    model.eval().to(device)
     print("-----Model loaded-----")
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     test_data = prepare_data(test_data,'testing')
 
-    test_loader = torch.utils.data.DataLoader(test_data, batch_size=1)
+    test_loader = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False)
     print("-----Running through test data-----")    
     y_hat = []
     y = []
-    for i, batch in enumerate(tqdm(test_loader,leave= False, desc="Testing progress:")):
+    for i, batch in enumerate(tqdm(test_loader,leave= False, desc="Testing progress")):
         with torch.no_grad():
             # move the batch tensors to the same device as the
             batch = { k:v.to(device) for k, v in batch.items() }
             # send 'input_ids', 'attention_mask' and 'labels' to the model
-            outputs = model(**batch)
+            logits = model(**batch).logits
             # the outputs are of shape (loss, logits)
-        length = batch['attention_mask'].sum(dim=1)[0]
-        pred_values = torch.argmax(outputs[1], dim=2)[0][:length]
-        y_hat.append(pred_values)
-        true_values = batch['labels'][0][:length]
-        y.append(true_values)
-            
-    prediction = torch.cat(y_hat)
-    target = torch.cat(y)
+        pred_values =  logits.argmax(-1)[0].tolist()
+        true_values = batch['labels'][0].tolist()        
+        length = true_values.index(-100)
+        y_hat.append(pred_values[:length])
+        y.append(true_values[:length])    
+
+    def flatten(l):
+        return [item for sublist in l for item in sublist]
+    
+    y = flatten(y)
+    y_hat = flatten(y_hat)
 
     print("-----Computing scores-----")
+    f1_metric = load('f1')
+    precision_metric = load('precision')
+    recall_metric = load('recall')
 
-    f1 = compute_f1(prediction, target)
-    precision = compute_pre(prediction, target)
-    recall = compute_rec(prediction, target)
+    avg= None#'macro'    
+    f1 = f1_metric.compute(predictions=y_hat, references= y, average=avg)
+    precision = precision_metric.compute(predictions= y_hat, references= y, average=avg)
+    recall = recall_metric.compute(predictions=y_hat, references= y, average=avg)
     
     print('F1 score:', f1)
     print('Precision:', precision)
     print('Recall:', recall)
-    print(y[0])
-    print(y_hat[0])
+

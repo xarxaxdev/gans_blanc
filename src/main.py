@@ -134,8 +134,8 @@ def main():
         tra_data, val_data, model = build_roberta_model_base(tra_data,val_data)
         # train it to our examples
         model,tra_loss,val_loss = train_model(model, tra_data, val_data, epochs=epochs, batch_size = batch_size, lr=lr)
-        filename = f'roberta.{args.dataset}.e{epochs}.bs{batch_size}.lr{lr}'
-        print('-----Saving model-----')
+        filename = f'roberta.{args.dataset}.e{epochs}.bs{batch_size}.lr{args.lr}'
+        print(f'-----Saving model {filename}-----')
         save_model(model,filename)
         print('-----Model saved-----')
         print('-----Saving model loss-----')
