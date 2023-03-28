@@ -22,7 +22,13 @@ def params():
         help='Roberta Model for Legal NER.',
         action='store_true'
     )
-
+    
+    parser.add_argument(
+        '--roberta2', dest='roberta2',
+        help='Roberta Model for Legal NER.',
+        action='store_true'
+    )
+    
     parser.add_argument(
         '--download_glove', dest='download_glove',
         help='Downloads the glove WE needed for our models.',
@@ -74,16 +80,16 @@ def main():
     if args.split_datasets:
         random.seed(123)
         val_split= 0.3
-        for dataset in ['NER_TRAIN_JUDGEMENT.json','NER_TRAIN_PREAMBLE.json']:
+        for dataset in ['NER_TRAIN_JUDGEMENT.json', 'NER_TRAIN_PREAMBLE.json']:
             training_data, word_to_ix = build_representation(dataset)
-            validation_file = dataset.replace('.json','_VAL.json')  
-            training_file = dataset.replace('.json','_TRA.json')  
+            validation_file = dataset.replace('.json', '_VAL.json')  
+            training_file = dataset.replace('.json', '_TRA.json')  
             random.shuffle(training_data)
-            split_index = round(val_split*len(training_data))
-            validation_data = (training_data[:split_index],word_to_ix)
-            training_data = (training_data[split_index:],word_to_ix)
-            save_raw_python(validation_data,validation_file)
-            save_raw_python(training_data,training_file)        
+            split_index = round(val_split * len(training_data))
+            validation_data = (training_data[:split_index], word_to_ix)
+            training_data = (training_data[split_index:], word_to_ix)
+            save_raw_python(validation_data, validation_file)
+            save_raw_python(training_data, training_file)        
 
 
     if args.download_glove:
@@ -103,18 +109,18 @@ def main():
 
         print("Training BiLSTM-CRF with parameters {} epochs, {} batch size, and {} learning rate".format(epoch_count,
                                                                                                         batch_size, lr))
-        model, training_loss = build_lstm_model(epoch_count, batch_size, lr, dataset)
-        print(training_loss)
-        filename = f'bilstm_crf.{dataset}.e{epoch_count}.bs{batch_size}.lr{lr}'
+        model, validation_loss = build_lstm_model(epoch_count, batch_size, lr, dataset)
+        print(validation_loss)
+        filename = f'bilstm_crf.{args.dataset}.e{epoch_count}.bs{batch_size}.lr{lr}'
         print('----- Saving model... -----')
         save_model(model, filename)
-        save_plot_train_loss(training_loss, filename)
+        save_plot_train_loss(validation_loss, filename)
         print('----- Model saved. -----')
     
     
     if args.roberta:
         epochs = int(args.epochs)
-        batch_size = int(args.batch)
+        #batch_size = int(args.batch)
         lr = float(args.lr)
         if args.dataset == 'judgement':
             dataset = 'NER_TRAIN_JUDGEMENT.json'
@@ -124,21 +130,25 @@ def main():
         val_file = dataset.replace('.json','_VAL.json')  
         tra_file = dataset.replace('.json','_TRA.json')  
             
-        (val_data,word_to_ix) = read_raw_python(val_file)
-        (tra_data,word_to_ix) = read_raw_python(tra_file)        
-        
+        (val_data, word_to_ix) = read_raw_python(val_file)
+        (tra_data, word_to_ix) = read_raw_python(tra_file) 
+      
+        #val_data = start_stop_tagging(val_data)
+        #tra_data = start_stop_tagging(tra_data)
+ 
         # get the untrained model
         tra_data, val_data, model = build_roberta_model_base(tra_data,val_data)
         # train it to our examples
-        model,val_loss, tra_loss = train_model(model, tra_data, val_data, epochs=epochs, batch_size = batch_size, lr=lr)
-        filename = f'roberta.{dataset}.e{epochs}.bs{batch_size}.lr{lr}'
-        print('-----Saving model-----')
+        model,metrics = train_model(model, tra_data, val_data, epochs=epochs, lr=lr)
+        filename = f'roberta.{args.dataset}.e{epochs}.lr{args.lr}'
+        print(f'-----Saving model {filename}-----')
         save_model(model,filename)
         print('-----Model saved-----')
-        print('-----Saving model loss-----')
-        save_plot_train_loss(tra_loss, filename + '.training')
-        save_plot_train_loss(val_loss, filename + '.validation')
-        print('-----Model training loss saved-----')
+        print('-----Saving model metrics-----')
+        for m in metrics:
+            save_plot(metrics[m],'epochs',m, filename  +f'.{m}.training')
+        print('-----Model training metrics-----')
+
 
 
     if args.evaluate_model:
@@ -147,7 +157,10 @@ def main():
             dataset = 'NER_DEV_JUDGEMENT.json'
         if args.dataset == 'preamble':
             dataset = 'NER_DEV_PREAMBLE.json'
-        evaluate_model(model, dataset)
+        if 'roberta' in model:
+            evaluate_model_roberta(model,dataset)
+        else:
+            evaluate_model(model, dataset)
 
 
 if __name__ == '__main__':
