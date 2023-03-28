@@ -2,6 +2,11 @@ import numpy as np
 # pytorch libraries
 import torch # the main pytorch library
 
+
+BATCH_SIZE_TRAIN_CONCURRENT=4
+BATCH_SIZE_VALIDATE_CONCURRENT=12*BATCH_SIZE_TRAIN_CONCURRENT
+
+
 # huggingface's transformers library
 from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer,set_seed,DataCollatorForTokenClassification,AutoTokenizer
 # huggingface's datasets library
@@ -15,6 +20,7 @@ sys.path.insert(1, '/src/utils')
 from utils.NLP_utils import *
 from utils.IOfunctions import *
 
+<<<<<<< HEAD
 #os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:2048"
 
 
@@ -27,6 +33,13 @@ tokenizer = AutoTokenizer.from_pretrained(roberta_version,add_prefix_space=True)
 PAD = tokenizer.pad_token
 data_collator = DataCollatorForTokenClassification(tokenizer)
 
+=======
+roberta_version = 'distilroberta-base'
+tokenizer = RobertaTokenizer.from_pretrained(roberta_version)
+PAD = tokenizer.pad_token
+
+
+>>>>>>> 47c3a50972bc2522386b0b9bb248f08fe724148c
 
 
 entities = ['COURT','PETITIONER','RESPONDENT','JUDGE','LAWYER','DATE','ORG',
@@ -46,6 +59,7 @@ for ent in ent_to_ix:
 
 for k in sorted(ix_to_ent.keys()):
     print(f'{k}: {ix_to_ent[k]}')
+<<<<<<< HEAD
 
 
 
@@ -95,18 +109,88 @@ def build_roberta_model_base(training_data,validation_data):
     # initialize the model and provide the 'num_labels' used to create the classification layer
     model = AutoModelForTokenClassification.from_pretrained(roberta_version, num_labels=len(ent_to_ix))
 
+=======
+
+def to_encoding(row):
+    #turn tokens into Roberta input, pad, add attention mask
+    encodings = tokenizer(row['sentence'], truncation=True, padding='max_length', is_split_into_words=True)
+    #row['sentence'] = row['sentence'] #+ [PAD] * (tokenizer.model_max_length - len(row['sentence']))
+    # pad tags to max possible length
+    #print(encodings.attention_mask)
+    #encodings.attention_mask = ( encodings.attention_mask encodings.inpu
+    #print(encodings.attention_mask)
+    labels = row['labels'] + [tokenizer.pad_token] * (tokenizer.model_max_length - len(row['labels']))
+    labels = [ ent_to_ix[i] for i in labels]
+    labels = torch.from_numpy(np.asarray(labels))
+    #print(labels)
+    #print(encodings.input_ids)
+    #print(len([x for x in labels if x!= -100]))
+    #print(len([x for x in encodings.input_ids if x !=1 ]))
+    #assert(False)
+    #labels = torch.where(encodings.input_ids== labe.pad_token,labels,-100)
+    return { **encodings, 'labels': labels }
+
+
+def prepare_data(data,dataset_type):
+    data = [{'sentence': i[0],'labels': i[1]} for i in data if len(i[0]) <= 512]
+    data = {key: [d[key] for d in data] for key in data[0]}
+    data = datasets.Dataset.from_dict(data)
+    data = data.map(to_encoding,desc= f'Mapping {dataset_type} dataset')  
+    # format the datasets so that we return only 'input_ids', 'attention_mask' and 'labels' 
+    # making it easier to train and validate the model
+    data.set_format(type='torch', columns=['input_ids', 'attention_mask', 'labels'])
+    return data
+
+def build_roberta_model_base(training_data,validation_data):
+    # initialize the model and provide the 'num_labels' used to create the classification layer
+    model = RobertaForTokenClassification.from_pretrained(roberta_version, num_labels=len(ent_to_ix))
+    #if tokenizer.pad_token is None:
+    #    tokenizer.add_special_tokens({'pad_token': PAD})
+    #    model.resize_token_embeddings(len(tokenizer))
+>>>>>>> 47c3a50972bc2522386b0b9bb248f08fe724148c
     # assign the 'id2label' and 'label2id' model configs
     model.config.id2label = ix_to_ent
     model.config.label2id = ent_to_ix
 
+<<<<<<< HEAD
     training_data = training_data[:300]
     validation_data = validation_data[:100]
+=======
+    #training_data = training_data[:100]
+    #validation_data = validation_data[:30]
+>>>>>>> 47c3a50972bc2522386b0b9bb248f08fe724148c
     training_data = prepare_data(training_data,'training')
     validation_data = prepare_data(validation_data,'validation')
     
     return training_data, validation_data, model
 
 
+<<<<<<< HEAD
+=======
+def compute_validation_loss(model,device, validation_data):
+    model.eval()  # handle drop-out/batch norm layers
+    validation_loader = torch.utils.data.DataLoader(validation_data, batch_size=BATCH_SIZE_VALIDATE_CONCURRENT)
+    current_loss = 0
+    curr_cases = 0
+    with torch.no_grad():
+        #for step,(x,y) in enumerate(validation_loader):
+        #    out = model(**x)  # only forward pass - NO gradients!!
+        #    loss += criterion(out, y)
+        for i, batch in enumerate(tqdm(validation_loader,leave= False, desc="Validation progress:")):
+            # move the batch tensors to the same device as the
+            batch = { k:v.to(device) for k, v in batch.items() }
+            # send 'input_ids', 'attention_mask' and 'labels' to the model
+            outputs = model(**batch)
+            # the outputs are of shape (loss, logits)
+            loss = outputs[0]
+            current_loss += loss.item()
+            curr_cases += BATCH_SIZE_VALIDATE_CONCURRENT
+            
+        
+        # total loss - divide by number of batches
+        val_loss = current_loss / len(validation_loader)
+        return val_loss
+>>>>>>> 47c3a50972bc2522386b0b9bb248f08fe724148c
 
 
 def compute_metrics(p):
@@ -151,6 +235,7 @@ def train_model(model,dataset,val_data,epochs = 3,lr = 1e-5):
     print('-----Preparing for training-----')
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # set the model in 'train' mode and send it to the device
+<<<<<<< HEAD
     filename = f'roberta.preamble.e{epochs}.lr{lr}'
     args = TrainingArguments(
         f"{filename}",save_strategy = "no",
@@ -162,6 +247,68 @@ def train_model(model,dataset,val_data,epochs = 3,lr = 1e-5):
         weight_decay=0.01#,
         #push_to_hub=True
     )
+=======
+    model.train().to(device)
+    # initialize the Adam optimizer (used for training/updating the model)
+    optimizer = optim.AdamW(params=model.parameters(), lr=lr)
+    train_data = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE_TRAIN_CONCURRENT, shuffle=True)
+    training_loss = []
+    validation_loss = []
+
+    torch.cuda.empty_cache()
+    gc.collect() 
+    print('-----Beginning to train model...-----')
+
+    # iterate through the data 'epochs' times
+    for epoch in tqdm(range(epochs), leave = True, desc="Epoch progress:"):
+        current_loss = 0
+        curr_cases = 0
+        # iterate through each batch of the train data
+        for i, batch in enumerate(tqdm(train_data, leave = False, desc="Batch progress:")):
+            # move the batch tensors to the same device as the
+            batch = { k:v.to(device) for k, v in batch.items() }
+            # send 'input_ids', 'attention_mask' and 'labels' to the model
+            outputs = model(**batch)
+            # the outputs are of shape (loss, logits)
+            loss = outputs[0]
+            if i == 0 :
+                print(batch['input_ids'][0])
+            #loss_mask = tags
+            #if i%10 == 0 and i> 0:
+            #    length = batch['attention_mask'].sum(dim=1)[0]
+            #    pred_values = torch.argmax(outputs[1], dim=2)[0][:length]
+            #    print(pred_values)            
+            # with the .backward method it calculates all 
+            # of  the gradients used for autograd
+            loss.backward()
+            current_loss += loss.item()
+            curr_cases += BATCH_SIZE_TRAIN_CONCURRENT  
+            if curr_cases % batch_size == 0 and i > 0:#update every batch_size
+                # update the model using the optimizer
+                optimizer.step()
+                # once we update the model we set the gradients to zero
+                optimizer.zero_grad()
+                # store the loss value for visualization
+                training_loss.append(current_loss / curr_cases)
+                current_loss = 0
+                current_cases = 0
+                torch.cuda.empty_cache() 
+                gc.collect()
+                #initially we thought about having more validation data points, 
+                #but this took too long.
+                #validation_loss.append(compute_validation_loss(model,device, val_data,batch_size))
+                #must set model to training again, validation deactivates training
+                #model.train().to(device)
+        # update the model one last time for this epoch
+        optimizer.step()
+        optimizer.zero_grad()
+        #Now we evaluate the model
+        training_loss.append(current_loss / curr_cases)
+        validation_loss.append(compute_validation_loss(model, device,val_data))
+        #must set model to training again, validation deactivates training
+        model.train().to(device)
+
+>>>>>>> 47c3a50972bc2522386b0b9bb248f08fe724148c
     
     trainer = Trainer(
         model,

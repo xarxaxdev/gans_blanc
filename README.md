@@ -18,16 +18,23 @@ More details on the data extraction and annotation processes can be found in the
 
 ## Setup
 ### Training
-Run `$ python src/main.py --download_glove` to download the pretrained Glove word embeddings. Initialize either a BiLSTM-CRF or a RoBERTa model by using either the `--bilstm_crf` or the `--roberta` arguments. For training, specify for either model the number of epochs, the batch size, and the learning rate with the respective parameters `--epochs`,`--batch_size`, and `--lr`. Choose either the `judgement` or the `preamble` datasets with the argument `--dataset`. Here is an example:
+Download the pretrained Glove word embeddings:
+```bash
+$ python src/main.py --download_glove
+```
+Initialize either a BiLSTM-CRF or a RoBERTa model by using either the `--bilstm_crf` or the `--roberta` arguments. For training, specify for either model the number of epochs, the batch size, and the learning rate with the respective parameters `--epochs`,`--batch_size`, and `--lr`. Choose either the `judgement` or the `preamble` datasets with the argument `--dataset`. Here is an example:
 ```bash
 $ python src/main.py --bilstm_crf --epochs 100 --batch_size 16 --lr 0.001 --dataset judgement
 ```
 After successful training, the generated model will be saved to `src/generated_models`.
 ### Testing and Evaluation
-Run `$ python src/main.py --evaluate_model` to test and evaluate either model on either judgement or preamble dev data. Specify which model to evaluate after the argument `--model` and on which dataset to test (`judgement` or `preamble`). We use F1 score.
+Run `$ python src/main.py --evaluate_model` to test and evaluate either model on either judgement or preamble dev data. Specify which model to evaluate after the argument `--model` and on which dataset to test (`judgement` or `preamble`). We use F1 score. Here is an example:
+```bash
+$ python src/main.py --evaluate_model bilstm_crf.judgement.e100.bs512.lr0.001 --model judgement
+```
 
 
 ## References
-1. [Advanced: Making Dynamic Decisions and the Bi-LSTM CRF](https://pytorch.org/tutorials/beginner/nlp/advanced_tutorial.html) – PyTorch Tutorials
-2. [F1-Score](https://torchmetrics.readthedocs.io/en/stable/classification/f1_score.html) – PyTorch-Metrics
+1. [Advanced: Making Dynamic Decisions and the Bi-LSTM CRF](https://pytorch.org/tutorials/beginner/nlp/advanced_tutorial.html) | PyTorch Tutorials
+2. [F1-Score](https://huggingface.co/docs/evaluate/index) | Hugging Face evaluation Library
 3. [pytorch-RoBERTa-named-entity-recognition](https://www.kaggle.com/code/eriknovak/pytorch-roberta-named-entity-recognition) | Kaggle

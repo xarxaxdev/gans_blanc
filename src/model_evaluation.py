@@ -49,20 +49,40 @@ def save_plot(values, x_name,y_name, filename):
 
 
 
-def compute_f1(prediction, target):
-    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
-    return metric(prediction, target)
+# def compute_f1(prediction, target):
+#     metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
+#     return metric(prediction, target)
 
-def compute_pre(prediction, target):
-    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
-    return metric(prediction, target)
+# def compute_pre(prediction, target):
+#     metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
+#     return metric(prediction, target)
 
-def compute_rec(prediction, target):
-    metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
-    return metric(prediction, target)
+# def compute_rec(prediction, target):
+#     metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
+#     return metric(prediction, target)
+
+def flatten(l):
+    return [item for sublist in l for item in sublist]
 
 
-def evaluate_model(model_path, dataset):
+def compute_score(y_hat, y, avg):
+    y = flatten(y)
+    y_hat = flatten(y_hat)
+
+    f1_metric = load('f1')
+    precision_metric = load('precision')
+    recall_metric = load('recall')
+    
+    f1 = f1_metric.compute(predictions=y_hat, references=y, average=avg)
+    precision = precision_metric.compute(predictions=y_hat, references=y, average=avg)
+    recall = recall_metric.compute(predictions=y_hat, references=y, average=avg)
+    
+    return f1, precision, recall
+
+
+
+
+def evaluate_model_bilstm_crf(model_path, dataset):
     
     # model initialization
     if dataset == 'NER_DEV_JUDGEMENT.json':
@@ -70,12 +90,14 @@ def evaluate_model(model_path, dataset):
     if dataset == 'NER_DEV_PREAMBLE.json':
         _, word_to_ix = build_representation('NER_TRAIN_PREAMBLE.json')
     
-    dataset = 'NER_TRAIN_JUDGEMENT.json'
+    # dataset = 'NER_TRAIN_JUDGEMENT.json'
     
     # update test data to representation
     raw_data = read_raw_data(dataset)
     test_data = build_data_representation(raw_data)
 
+    print(len(test_data))
+    
     # randomly assign unknown words to word_to_ix
     for sentence, tags in test_data:
         for word in sentence:
@@ -94,28 +116,26 @@ def evaluate_model(model_path, dataset):
     for sentence, targets in test_data:
         x.append(prepare_sequence(sentence, word_to_ix))
         y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
-
     
     print("-----Running through test data-----")
     for i in range(len(x)):
         # print(i)
         # print(model(x[i]))
         y_hat.append(torch.tensor(model(x[i])[1]))
-        
-    prediction = torch.cat(y_hat)
-    target = torch.cat(y)
-
-    print("-----Computing scores-----")
-
-    f1 = compute_f1(prediction, target)
-    precision = compute_pre(prediction, target)
-    recall = compute_rec(prediction, target)
     
+
+    # computing scores
+    f1, precision, recall = compute_score(y_hat, y, 'macro')
+
     print('F1 score:', f1)
     print('Precision:', precision)
     print('Recall:', recall)
 
+    f1, precision, recall = compute_score(y_hat, y, None)
 
+    print('F1 score:', f1)
+    print('Precision:', precision)
+    print('Recall:', recall)
 
 
 
