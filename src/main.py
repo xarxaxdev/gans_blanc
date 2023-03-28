@@ -132,9 +132,6 @@ def main():
             
         (val_data, word_to_ix) = read_raw_python(val_file)
         (tra_data, word_to_ix) = read_raw_python(tra_file) 
-      
-        #val_data = start_stop_tagging(val_data)
-        #tra_data = start_stop_tagging(tra_data)
  
         # get the untrained model
         tra_data, val_data, model = build_roberta_model_base(tra_data,val_data)

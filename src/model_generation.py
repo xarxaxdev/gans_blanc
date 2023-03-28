@@ -123,15 +123,11 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
     validation_loss = []
 
     # prepare input sequences
-    
     training_data, word_to_ix = build_representation(dataset)
 
     # split
     val_file = dataset.replace('.json','_VAL.json')
     tra_file = dataset.replace('.json','_TRA.json')
-
-    # validation_data = read_raw_data(val_file)[0][0:10]
-    # training_data = read_raw_data(tra_file)[0][0:10]
     
     validation_data = read_raw_data(val_file)[0]
     training_data = read_raw_data(tra_file)[0]
@@ -201,12 +197,5 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
         
         # check predictions after training
         validation_loss.append(calculate_loss(bilstm_crf, x_validation, y_validation))
-        
-        # for i in range(len(x_train)):
-        #     # print(x_train[i])
-        #     print('--------y--------')
-        #     print(y_train[i])
-        #     print('--------y_hat--------')
-        #     print(bilstm_crf(x_train[i]))
 
     return bilstm_crf, validation_loss
