@@ -70,18 +70,7 @@ def compute_score(y_hat, y, avg):
 
 
 
-def evaluate_model_bilstm_crf(model_path, dataset):
-    
-    # # model initialization
-    # if dataset == 'NER_DEV_JUDGEMENT.json':
-    #     _, word_to_ix = build_representation('NER_TRAIN_JUDGEMENT.json')
-    # if dataset == 'NER_DEV_PREAMBLE.json':
-    #     _, word_to_ix = build_representation('NER_TRAIN_PREAMBLE.json')
-    
-    # # update test data to representation
-    # raw_data = read_raw_data(dataset)
-    # test_data = build_data_representation(raw_data)
-
+def evaluate_model_bilstm_crf(model_path, dataset):    
     test_data, word_to_ix = read_raw_data(dataset)
 
     # randomly assign unknown words to word_to_ix
@@ -124,14 +113,6 @@ def evaluate_model_bilstm_crf(model_path, dataset):
 def evaluate_model_roberta(model_path, dataset):
     print("-----Loading and preparing data...-----")
     # model initialization
-    #if dataset == 'NER_DEV_JUDGEMENT.json':
-    #    _, word_to_ix = build_representation('NER_DEV_JUDGEMENT.json')
-    #if dataset == 'NER_DEV_PREAMBLE.json':
-    #    _, word_to_ix = build_representation('NER_DEV_PREAMBLE.json')
-    
-    # update test data to representation
-    #raw_data = read_raw_data(dataset)
-    #test_data = build_data_representation(raw_data)
     test_data, _  = read_raw_data(dataset)
     test_data = prepare_data(test_data,'testing')
 

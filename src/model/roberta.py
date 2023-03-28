@@ -88,8 +88,8 @@ def build_roberta_model_base(training_data,validation_data):
     model.config.id2label = ix_to_ent
     model.config.label2id = ent_to_ix
 
-    training_data = training_data[:30]
-    validation_data = validation_data[:10]
+    #training_data = training_data[:30]
+    #validation_data = validation_data[:10]
     training_data = prepare_data(training_data,'training')
     validation_data = prepare_data(validation_data,'validation')
     

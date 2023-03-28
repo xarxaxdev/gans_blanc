@@ -9,7 +9,7 @@ DATASET=judgement
 #python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr 0.075
 
 
-EPOCHS=100
+EPOCHS=50
 DATASET=judgement
 DATASET=preamble
 LR=0.00001
