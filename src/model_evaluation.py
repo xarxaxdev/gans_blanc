@@ -72,12 +72,14 @@ def evaluate_model_bilstm_crf(model_path, dataset):
     if dataset == 'NER_DEV_PREAMBLE.json':
         _, word_to_ix = build_representation('NER_TRAIN_PREAMBLE.json')
     
-    dataset = 'NER_TRAIN_JUDGEMENT.json'
+    # dataset = 'NER_TRAIN_JUDGEMENT.json'
     
     # update test data to representation
     raw_data = read_raw_data(dataset)
     test_data = build_data_representation(raw_data)
 
+    print(len(test_data))
+    
     # randomly assign unknown words to word_to_ix
     for sentence, tags in test_data:
         for word in sentence:
@@ -96,7 +98,7 @@ def evaluate_model_bilstm_crf(model_path, dataset):
     for sentence, targets in test_data:
         x.append(prepare_sequence(sentence, word_to_ix))
         y.append(torch.tensor([ent_to_ix[t] for t in targets], dtype=torch.long))    
-
+    
     
     print("-----Running through test data-----")
     for i in range(len(x)):
