@@ -28,7 +28,7 @@ def save_plot_train_loss(train_loss, filename):
     datafile = os.path.join(cur_path, 'plots', filename)
 
     plt.savefig(f'{datafile}.png', bbox_inches='tight')
-    #plt.show()
+
 
 def save_plot(values, x_name,y_name, filename):
     x = len(values)
@@ -45,21 +45,8 @@ def save_plot(values, x_name,y_name, filename):
     datafile = os.path.join(cur_path, 'plots', filename)
 
     plt.savefig(f'{datafile}.png', bbox_inches='tight')
-    #plt.show()
 
 
-
-# def compute_f1(prediction, target):
-#     metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
-#     return metric(prediction, target)
-
-# def compute_pre(prediction, target):
-#     metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
-#     return metric(prediction, target)
-
-# def compute_rec(prediction, target):
-#     metric = MulticlassF1Score(num_classes=len(ent_to_ix), average='macro')
-#     return metric(prediction, target)
 
 def flatten(l):
     return [item for sublist in l for item in sublist]
@@ -90,8 +77,6 @@ def evaluate_model_bilstm_crf(model_path, dataset):
     if dataset == 'NER_DEV_PREAMBLE.json':
         _, word_to_ix = build_representation('NER_TRAIN_PREAMBLE.json')
     
-    # dataset = 'NER_TRAIN_JUDGEMENT.json'
-    
     # update test data to representation
     raw_data = read_raw_data(dataset)
     test_data = build_data_representation(raw_data)
@@ -119,8 +104,6 @@ def evaluate_model_bilstm_crf(model_path, dataset):
     
     print("-----Running through test data-----")
     for i in range(len(x)):
-        # print(i)
-        # print(model(x[i]))
         y_hat.append(torch.tensor(model(x[i])[1]))
     
 
@@ -131,11 +114,6 @@ def evaluate_model_bilstm_crf(model_path, dataset):
     print('Precision:', precision)
     print('Recall:', recall)
 
-    f1, precision, recall = compute_score(y_hat, y, None)
-
-    print('F1 score:', f1)
-    print('Precision:', precision)
-    print('Recall:', recall)
 
 
 
