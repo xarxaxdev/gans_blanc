@@ -7,7 +7,8 @@ from model_generation import ent_to_ix
 from utils.IOfunctions import *
 from utils.NLP_utils import *
 from model_generation import *
-from model.roberta import prepare_data,predict_model,ix_to_ent
+from model.roberta import prepare_data,predict_model
+from model.roberta import ix_to_ent as ix_to_ent_roberta
 from tqdm import tqdm
 
 from evaluate import load
@@ -119,7 +120,7 @@ def evaluate_model_bilstm_crf(model_path, dataset):
 
 
 def evaluate_model_roberta(model_path, dataset):
-    
+    print("-----Loading and preparing data...-----")
     # model initialization
     if dataset == 'NER_DEV_JUDGEMENT.json':
         _, word_to_ix = build_representation('NER_DEV_JUDGEMENT.json')
@@ -128,31 +129,22 @@ def evaluate_model_roberta(model_path, dataset):
     
     # update test data to representation
     raw_data = read_raw_data(dataset)
-    print(len(raw_data))
     test_data = build_data_representation(raw_data)
-    print(len(test_data))
-    #test_data = start_stop_tagging(test_data)
-    #test_data = test_data[:2]
-    # randomly assign unknown words to word_to_ix
-    #for sentence, tags in test_data:
-        #for word in sentence:
-            #if word not in word_to_ix:
-                #word_to_ix[word] = random.randint(0, 100)
-    
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    device = 'cpu'
-    # load model
+    test_data = prepare_data(test_data,'testing')
+
+    print("-----Loaded and prepared data-----")
     print("-----Loading model-----")
     model = load_model(model_path)
-    model.eval().to(device)
+    model.eval()
     print("-----Model loaded-----")
-
-    test_data = prepare_data(test_data,'testing')
-    print("-----Running through test data-----")    
+    print("-----Running model through test data and scoring-----")    
     labels,f1,precision,recall,f1_all = predict_model(model,test_data)
-    labels = [ix_to_ent[i] for i in labels]
+    labels = [ix_to_ent_roberta[i] for i in labels]
     
     print('F1 score:', f1)
     print('Precision:', precision)
     print('Recall:', recall)
     print('F1_by_class score:', list(zip(f1_all,labels)))
+    
+    
+    

@@ -8,12 +8,13 @@ DATASET=judgement
 #python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr 0.05
 #python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr 0.075
 
-BATCHES=512
+
 EPOCHS=10
 DATASET=preamble
+DATASET=judgement
 LR=0.00001
 MODEL=roberta
-python src/main.py --$MODEL --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr $LR
+python src/main.py --$MODEL --dataset $DATASET --epochs $EPOCHS --lr $LR
 python src/main.py --evaluate_model --dataset $DATASET --model $MODEL.$DATASET.e$EPOCHS.lr$LR
 
 #python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr 0.025
