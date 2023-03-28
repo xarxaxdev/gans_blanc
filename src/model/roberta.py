@@ -29,28 +29,12 @@ BATCH_SIZE_VALIDATE_CONCURRENT=10*BATCH_SIZE_TRAIN_CONCURRENT
 set_seed(123)
 roberta_version = 'distilroberta-base'
 tokenizer = AutoTokenizer.from_pretrained(roberta_version,add_prefix_space=True)
-PAD = tokenizer.pad_token
+#PAD = tokenizer.pad_token
 data_collator = DataCollatorForTokenClassification(tokenizer)
 
 
 
-entities = ['COURT','PETITIONER','RESPONDENT','JUDGE','LAWYER','DATE','ORG',
-'GPE','STATUTE','PROVISION','PRECEDENT','CASE_NUMBER','WITNESS','OTHER_PERSON']
 
-# entity to index dictionary
-ent_to_ix = {'O':0, PAD:-100} #-100 is the ignore_index default 
-ix_to_ent = {}
-i = 1
-for ent in entities:
-    ent_to_ix[f'B-{ent}']= i
-    i+=1
-    ent_to_ix[f'I-{ent}'] = i 
-    i+=1 
-for ent in ent_to_ix:
-    ix_to_ent[ent_to_ix[ent]] = ent
-
-for k in sorted(ix_to_ent.keys()):
-    print(f'{k}: {ix_to_ent[k]}')
 
 
 

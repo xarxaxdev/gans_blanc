@@ -8,56 +8,11 @@ from model.bilstm_crf import BiLSTM_CRF
 import time
 import random
 
-
 HIDDEN_DIM=2
 
 torch.manual_seed(1)
 random.seed(10)
 
-START_TAG = "<START>"
-STOP_TAG = "<STOP>"
-PAD = "<PAD>"
-
-# entity to index dictionary
-ent_to_ix = {
-    PAD:0,
-    "O": 1,
-    START_TAG: 2,
-    STOP_TAG: 3,
-    
-    "B-COURT": 4,
-    "B-PETITIONER": 5,
-    "B-RESPONDENT": 6,
-    "B-JUDGE": 7,
-    "B-LAWYER": 8,
-    "B-DATE": 9,
-    "B-ORG": 10,
-    "B-GPE": 11,
-    "B-STATUTE": 12,
-    "B-PROVISION": 13,
-    "B-PRECEDENT": 14,
-    "B-CASE_NUMBER": 15,
-    "B-WITNESS": 16,
-    "B-OTHER_PERSON": 17,
-    
-    "I-COURT": 18,
-    "I-PETITIONER": 19,
-    "I-RESPONDENT": 20,
-    "I-JUDGE": 21,
-    "I-LAWYER": 22,
-    "I-DATE": 23,
-    "I-ORG": 24,
-    "I-GPE": 25,
-    "I-STATUTE": 26,
-    "I-PROVISION": 27,
-    "I-PRECEDENT": 28,
-    "I-CASE_NUMBER": 29,
-    "I-WITNESS": 30,
-    "I-OTHER_PERSON": 31,
-}
-ix_to_ent = {}
-for ent in ent_to_ix:
-    ix_to_ent[ent_to_ix[ent]] = ent
 
 def build_representation(dataset):
 
@@ -124,7 +79,7 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
     validation_loss = []
 
     # prepare input sequences
-    training_data, word_to_ix = build_representation(dataset)
+    _, word_to_ix = build_representation(dataset)
 
     # split
     val_file = dataset.replace('.json','_VAL.json')

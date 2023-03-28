@@ -79,18 +79,34 @@ def main():
     args = params()
     if args.split_datasets:
         random.seed(123)
-        val_split= 0.3
+        files_to_save={}
         for dataset in ['NER_TRAIN_JUDGEMENT.json', 'NER_TRAIN_PREAMBLE.json']:
-            training_data, word_to_ix = build_representation(dataset)
+            data, word_to_ix = build_representation(dataset)
+            testing_file = dataset.replace('.json', '_TES.json')  
             validation_file = dataset.replace('.json', '_VAL.json')  
             training_file = dataset.replace('.json', '_TRA.json')  
-            random.shuffle(training_data)
-            split_index = round(val_split * len(training_data))
-            validation_data = (training_data[:split_index], word_to_ix)
-            training_data = (training_data[split_index:], word_to_ix)
-            save_raw_python(validation_data, validation_file)
-            save_raw_python(training_data, training_file)        
+            random.shuffle(data)
+            index1 = round(0.2 * len(data))
+            index2 = round(0.4 * len(data))
+            testing_data = data[:index1]
+            validation_data = data[index1:index2]
+            training_data = data[index2:]
+            #now we build the vocabulary for BiLSTM
+            vocabulary = set()
+            for sentence,_ in validation_data + training_data:
+                for w in sentence:
+                    vocabulary.add(w)
+            words = [i for i in word_to_ix.keys()]
+            for w in words:
+                if not(w in vocabulary):
+                    del word_to_ix[w]
+            
+            files_to_save[testing_file] = (testing_data,word_to_ix)
+            files_to_save[validation_file] = (validation_data,word_to_ix)
+            files_to_save[training_file] = (training_data,word_to_ix)
 
+        for f in files_to_save:
+            save_raw_python(files_to_save[f],f)
 
     if args.download_glove:
         url_glove = 'https://nlp.stanford.edu/data/glove.6B.zip'
