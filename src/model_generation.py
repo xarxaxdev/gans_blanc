@@ -79,13 +79,13 @@ def build_lstm_model(epoch_count, batch_size, lr, dataset):
     validation_loss = []
 
     # prepare input sequences
-    _, word_to_ix = build_representation(dataset)
+    #_, word_to_ix = build_representation(dataset)
 
     # split
     val_file = dataset.replace('.json','_VAL.json')
     tra_file = dataset.replace('.json','_TRA.json')
     
-    validation_data = read_raw_data(val_file)[0]
+    validation_data, word_to_ix = read_raw_data(val_file)#[0]
     training_data = read_raw_data(tra_file)[0]
 
     # prepare validation set

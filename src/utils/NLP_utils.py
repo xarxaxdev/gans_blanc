@@ -32,8 +32,8 @@ for ent in ent_to_ix:
 
 
 
-for k in sorted(ix_to_ent.keys()):
-    print(f'{k}: {ix_to_ent[k]}')
+#for k in sorted(ix_to_ent.keys()):
+#    print(f'{k}: {ix_to_ent[k]}')
 
 
 

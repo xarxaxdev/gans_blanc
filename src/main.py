@@ -92,6 +92,7 @@ def main():
             validation_data = data[index1:index2]
             training_data = data[index2:]
             #now we build the vocabulary for BiLSTM
+            #this code is a mess, should be done prettier
             vocabulary = set()
             for sentence,_ in validation_data + training_data:
                 for w in sentence:
@@ -100,7 +101,13 @@ def main():
             for w in words:
                 if not(w in vocabulary):
                     del word_to_ix[w]
-            
+            word_to_ix2 = {}
+            i = 0 
+            for w in word_to_ix:
+                word_to_ix2[w]= i
+                i+=1
+            word_to_ix = word_to_ix2
+            #and we generate the new files to save
             files_to_save[testing_file] = (testing_data,word_to_ix)
             files_to_save[validation_file] = (validation_data,word_to_ix)
             files_to_save[training_file] = (training_data,word_to_ix)
