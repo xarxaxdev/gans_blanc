@@ -35,6 +35,6 @@ $ python src/main.py --evaluate_model bilstm_crf.judgement.e100.bs512.lr0.001 --
 
 
 ## References
-1. [Advanced: Making Dynamic Decisions and the Bi-LSTM CRF](https://pytorch.org/tutorials/beginner/nlp/advanced_tutorial.html) – PyTorch Tutorials
-2. [F1-Score](https://torchmetrics.readthedocs.io/en/stable/classification/f1_score.html) – PyTorch-Metrics
+1. [Advanced: Making Dynamic Decisions and the Bi-LSTM CRF](https://pytorch.org/tutorials/beginner/nlp/advanced_tutorial.html) | PyTorch Tutorials
+2. [F1-Score](https://huggingface.co/docs/evaluate/index) | Hugging Face evaluation Library
 3. [pytorch-RoBERTa-named-entity-recognition](https://www.kaggle.com/code/eriknovak/pytorch-roberta-named-entity-recognition) | Kaggle
