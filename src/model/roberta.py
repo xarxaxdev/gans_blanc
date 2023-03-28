@@ -144,7 +144,7 @@ def train_model(model,dataset,val_data,epochs = 3,lr = 1e-5):
     args = TrainingArguments(
         f"{filename}",save_strategy = "no",
         evaluation_strategy = "epoch",
-        learning_rate=2e-5,
+        learning_rate=lr,
         per_device_train_batch_size=BATCH_SIZE_TRAIN_CONCURRENT,
         per_device_eval_batch_size=BATCH_SIZE_VALIDATE_CONCURRENT,
         num_train_epochs=epochs,
