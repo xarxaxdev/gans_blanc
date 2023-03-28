@@ -146,9 +146,9 @@ def main():
         #batch_size = int(args.batch)
         lr = float(args.lr)
         if args.dataset == 'judgement':
-            dataset = 'NER_TRAIN_JUDGEMENT.json'
+            dataset = 'NER_TRAIN_JUDGEMENT_TES.json'
         if args.dataset == 'preamble':
-            dataset = 'NER_TRAIN_PREAMBLE.json'
+            dataset = 'NER_TRAIN_PREAMBLE_TES.json'
         
         val_file = dataset.replace('.json','_VAL.json')  
         tra_file = dataset.replace('.json','_TRA.json')  
@@ -174,9 +174,9 @@ def main():
     if args.evaluate_model:
         model = str(args.model)
         if args.dataset == 'judgement':
-            dataset = 'NER_DEV_JUDGEMENT.json'
+            dataset = 'NER_TRAIN_JUDGEMENT_TES.json'
         if args.dataset == 'preamble':
-            dataset = 'NER_DEV_PREAMBLE.json'
+            dataset = 'NER_TRAIN_PREAMBLE_TES.json'
         if 'roberta' in model:
             evaluate_model_roberta(model,dataset)
         if 'bilstm_crf' in model:

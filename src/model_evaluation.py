@@ -73,17 +73,18 @@ def compute_score(y_hat, y, avg):
 
 def evaluate_model_bilstm_crf(model_path, dataset):
     
-    # model initialization
-    if dataset == 'NER_DEV_JUDGEMENT.json':
-        _, word_to_ix = build_representation('NER_TRAIN_JUDGEMENT.json')
-    if dataset == 'NER_DEV_PREAMBLE.json':
-        _, word_to_ix = build_representation('NER_TRAIN_PREAMBLE.json')
+    # # model initialization
+    # if dataset == 'NER_DEV_JUDGEMENT.json':
+    #     _, word_to_ix = build_representation('NER_TRAIN_JUDGEMENT.json')
+    # if dataset == 'NER_DEV_PREAMBLE.json':
+    #     _, word_to_ix = build_representation('NER_TRAIN_PREAMBLE.json')
     
-    # update test data to representation
-    raw_data = read_raw_data(dataset)
-    test_data = build_data_representation(raw_data)
+    # # update test data to representation
+    # raw_data = read_raw_data(dataset)
+    # test_data = build_data_representation(raw_data)
 
-    
+    test_data, word_to_ix = read_raw_data(dataset)
+
     # randomly assign unknown words to word_to_ix
     for sentence, tags in test_data:
         for word in sentence:
@@ -109,7 +110,7 @@ def evaluate_model_bilstm_crf(model_path, dataset):
     
 
     # computing scores
-    f1, precision, recall = compute_score(y_hat, y, 'macro')
+    f1, precision, recall = compute_score(y_hat, y, None)
 
     print('F1 score:', f1)
     print('Precision:', precision)
