@@ -55,8 +55,9 @@ ent_to_ix = {
     "I-WITNESS": 30,
     "I-OTHER_PERSON": 31,
 }
-
-
+ix_to_ent = {}
+for ent in ent_to_ix:
+    ix_to_ent[ent_to_ix[ent]] = ent
 
 def build_representation(dataset):
 

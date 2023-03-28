@@ -3,7 +3,8 @@ import torch
 import random
 import matplotlib.pyplot as plt
 from torchmetrics.classification import MulticlassPrecision, MulticlassRecall, MulticlassF1Score
-from model_generation import ent_to_ix
+from model_generation import ent_to_ix as ent_to_ix_bilstm 
+from model_generation import ix_to_ent as ix_to_ent_bilstm
 from utils.IOfunctions import *
 from utils.NLP_utils import *
 from model_generation import *
@@ -82,7 +83,6 @@ def evaluate_model_bilstm_crf(model_path, dataset):
     raw_data = read_raw_data(dataset)
     test_data = build_data_representation(raw_data)
 
-    print(len(test_data))
     
     # randomly assign unknown words to word_to_ix
     for sentence, tags in test_data:
