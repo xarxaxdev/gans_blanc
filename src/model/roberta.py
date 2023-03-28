@@ -121,10 +121,12 @@ def compute_metrics(p):
     recall_metric = load('recall')
     f1_classes = f1_metric.compute(predictions=y_hat, references= y, average=None)
     f1_classes['f1']= f1_classes['f1'].tolist()
-    avg='macro'
-    f1 = f1_metric.compute(predictions=y_hat, references= y, average=avg)
-    precision = precision_metric.compute(predictions= y_hat, references= y, average=avg)
-    recall = recall_metric.compute(predictions=y_hat, references= y, average=avg)
+
+    f1 = f1_metric.compute(predictions=y_hat, references= y, average='macro')
+    precision = precision_metric.compute(predictions= y_hat, references= y, average=None)
+    precision['precision']= precision['precision'].tolist()
+    recall = recall_metric.compute(predictions=y_hat, references= y, average=None)
+    recall['recall']= recall['recall'].tolist()
     #print('F1 score:', f1)
     #print('Precision:', precision)
     #print('Recall:', recall)

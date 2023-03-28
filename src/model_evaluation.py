@@ -3,13 +3,10 @@ import torch
 import random
 import matplotlib.pyplot as plt
 from torchmetrics.classification import MulticlassPrecision, MulticlassRecall, MulticlassF1Score
-from model_generation import ent_to_ix as ent_to_ix_bilstm 
-from model_generation import ix_to_ent as ix_to_ent_bilstm
 from utils.IOfunctions import *
 from utils.NLP_utils import *
 from model_generation import *
 from model.roberta import prepare_data,predict_model
-from model.roberta import ix_to_ent as ix_to_ent_roberta
 from tqdm import tqdm
 
 from evaluate import load
@@ -55,18 +52,20 @@ def flatten(l):
 
 
 def compute_score(y_hat, y, avg):
-    y = flatten(y)
-    y_hat = flatten(y_hat)
-
+    y = [i.item() for i in flatten(y)]
+    y_hat = [i.item() for i in flatten(y_hat)]
+    labels = list(set(y))
     f1_metric = load('f1')
     precision_metric = load('precision')
     recall_metric = load('recall')
+
+    f1_classes = f1_metric.compute(predictions=y_hat, references= y, average=None)
+    f1_classes = f1_classes['f1'].tolist()
+    f1 = f1_metric.compute(predictions=y_hat, references=y, average='macro')
+    precision = precision_metric.compute(predictions=y_hat, references=y, average=None)
+    recall = recall_metric.compute(predictions=y_hat, references=y, average=None)
     
-    f1 = f1_metric.compute(predictions=y_hat, references=y, average=avg)
-    precision = precision_metric.compute(predictions=y_hat, references=y, average=avg)
-    recall = recall_metric.compute(predictions=y_hat, references=y, average=avg)
-    
-    return f1, precision, recall
+    return labels, f1['f1'], precision['precision'].tolist(), recall['recall'].tolist(), f1_classes
 
 
 
@@ -110,11 +109,13 @@ def evaluate_model_bilstm_crf(model_path, dataset):
     
 
     # computing scores
-    f1, precision, recall = compute_score(y_hat, y, None)
+    labels, f1, precision, recall, f1_all = compute_score(y_hat, y, None)
+    labels = [ix_to_ent[i] for i in labels]
 
     print('F1 score:', f1)
     print('Precision:', precision)
     print('Recall:', recall)
+    print('F1_by_class score:', list(zip(f1_all,labels)))
 
 
 
@@ -129,9 +130,10 @@ def evaluate_model_roberta(model_path, dataset):
         _, word_to_ix = build_representation('NER_DEV_PREAMBLE.json')
     
     # update test data to representation
-    raw_data = read_raw_data(dataset)
-    test_data = build_data_representation(raw_data)
-    test_data = prepare_data(test_data,'testing')
+    #raw_data = read_raw_data(dataset)
+    #test_data = build_data_representation(raw_data)
+    #test_data = prepare_data(test_data,'testing')
+    test_data, _  = read_raw_data(dataset)
 
     print("-----Loaded and prepared data-----")
     print("-----Loading model-----")
@@ -140,7 +142,7 @@ def evaluate_model_roberta(model_path, dataset):
     print("-----Model loaded-----")
     print("-----Running model through test data and scoring-----")    
     labels,f1,precision,recall,f1_all = predict_model(model,test_data)
-    labels = [ix_to_ent_roberta[i] for i in labels]
+    labels = [ix_to_ent[i] for i in labels]
     
     print('F1 score:', f1)
     print('Precision:', precision)
