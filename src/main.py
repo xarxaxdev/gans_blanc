@@ -156,11 +156,13 @@ def main():
         (val_data, word_to_ix) = read_raw_python(val_file)
         (tra_data, word_to_ix) = read_raw_python(tra_file) 
  
+        filename = f'roberta.{args.dataset}.e{epochs}.lr{args.lr}'
+        print(f'-----Beginning training for {filename}-----')
         # get the untrained model
         tra_data, val_data, model = build_roberta_model_base(tra_data,val_data)
         # train it to our examples
         model,metrics = train_model(model, tra_data, val_data, epochs=epochs, lr=lr)
-        filename = f'roberta.{args.dataset}.e{epochs}.lr{args.lr}'
+        print(f'-----Training finished-----')
         print(f'-----Saving model {filename}-----')
         save_model(model,filename)
         print('-----Model saved-----')
