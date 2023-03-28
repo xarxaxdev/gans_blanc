@@ -146,9 +146,9 @@ def main():
         #batch_size = int(args.batch)
         lr = float(args.lr)
         if args.dataset == 'judgement':
-            dataset = 'NER_TRAIN_JUDGEMENT_TES.json'
+            dataset = 'NER_TRAIN_JUDGEMENT.json'
         if args.dataset == 'preamble':
-            dataset = 'NER_TRAIN_PREAMBLE_TES.json'
+            dataset = 'NER_TRAIN_PREAMBLE.json'
         
         val_file = dataset.replace('.json','_VAL.json')  
         tra_file = dataset.replace('.json','_TRA.json')  

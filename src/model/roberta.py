@@ -88,8 +88,8 @@ def build_roberta_model_base(training_data,validation_data):
     model.config.id2label = ix_to_ent
     model.config.label2id = ent_to_ix
 
-    training_data = training_data[:300]
-    validation_data = validation_data[:100]
+    training_data = training_data[:30]
+    validation_data = validation_data[:10]
     training_data = prepare_data(training_data,'training')
     validation_data = prepare_data(validation_data,'validation')
     
@@ -119,14 +119,12 @@ def compute_metrics(p):
     f1_metric = load('f1')
     precision_metric = load('precision')
     recall_metric = load('recall')
-    f1_classes = f1_metric.compute(predictions=y_hat, references= y, average=None)
-    f1_classes['f1']= f1_classes['f1'].tolist()
-
-    f1 = f1_metric.compute(predictions=y_hat, references= y, average='macro')
-    precision = precision_metric.compute(predictions= y_hat, references= y, average=None)
-    precision['precision']= precision['precision'].tolist()
-    recall = recall_metric.compute(predictions=y_hat, references= y, average=None)
-    recall['recall']= recall['recall'].tolist()
+    f1_classes = f1_metric.compute(predictions=y_hat, references= y, average=None)['f1'].tolist()
+    f1 = f1_metric.compute(predictions=y_hat, references= y, average='macro')['f1']
+    precision = precision_metric.compute(predictions= y_hat, references= y, average=None)['precision'].tolist()
+    #precision['precision']= precision['precision'].tolist()
+    recall = recall_metric.compute(predictions=y_hat, references= y, average=None)['recall'].tolist()
+    #recall['recall']= recall['recall'].tolist()
     #print('F1 score:', f1)
     #print('Precision:', precision)
     #print('Recall:', recall)
@@ -175,7 +173,7 @@ def train_model(model,dataset,val_data,epochs = 3,lr = 1e-5):
         print(metrics)
         if 'eval_f1' in metrics:
             val_loss.append(metrics['eval_loss'])
-            val_f1.append(metrics['eval_f1']['f1'])
+            val_f1.append(metrics['eval_f1'])
         elif 'train_loss' in metrics :
             tra_loss.append(metrics['train_loss'])
         else :
@@ -204,10 +202,10 @@ def predict_model(model,dataset):
     metrics = trainer.evaluate()
     print(metrics)
     labels = metrics['eval_labels']
-    f1 = metrics['eval_f1']['f1']
-    precision = metrics['eval_precision']['precision']
-    recall = metrics['eval_recall']['recall']
-    f1_all = metrics['eval_f1_classes']['f1']
+    f1 = metrics['eval_f1']
+    precision = metrics['eval_precision']
+    recall = metrics['eval_recall']
+    f1_all = metrics['eval_f1_classes']
     
     return labels,f1,precision,recall,f1_all
     

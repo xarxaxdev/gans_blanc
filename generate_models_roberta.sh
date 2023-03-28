@@ -9,16 +9,16 @@ DATASET=judgement
 #python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr 0.075
 
 
-EPOCHS=20
+EPOCHS=100
 DATASET=judgement
 DATASET=preamble
-LR=0.01
-MODEL=bilstm_crf
-#python src/main.py --$MODEL --dataset $DATASET --epochs $EPOCHS --lr $LR --batch $BATCHES
+LR=0.00001
+MODEL=roberta
+python src/main.py --$MODEL --dataset $DATASET --epochs $EPOCHS --lr $LR --batch $BATCHES
 #python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS  --lr 0.025
 #python src/main.py --evaluate_model --dataset $DATASET --model $MODEL.$DATASET.e$EPOCHS.lr$LR
-python src/main.py --evaluate_model --dataset $DATASET --model bilstm_crf.$DATASET.e$EPOCHS.bs$BATCHES.lr$LR
-#python src/main.py --evaluate_model --dataset $DATASET --model roberta.$DATASET.e$EPOCHS.lr$LR
+#python src/main.py --evaluate_model --dataset $DATASET --model bilstm_crf.$DATASET.e$EPOCHS.bs$BATCHES.lr$LR
+python src/main.py --evaluate_model --dataset $DATASET --model $MODEL.$DATASET.e$EPOCHS.lr$LR
 #python src/main.py --$MODEL --dataset $DATASET --epochs $EPOCHS --lr $LR
 
 #python src/main.py --roberta --dataset $DATASET --epochs $EPOCHS --batch $BATCHES --lr 0.05

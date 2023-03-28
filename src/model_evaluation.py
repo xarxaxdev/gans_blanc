@@ -113,8 +113,8 @@ def evaluate_model_bilstm_crf(model_path, dataset):
     labels = [ix_to_ent[i] for i in labels]
 
     print('F1 score:', f1)
-    print('Precision:', precision)
-    print('Recall:', recall)
+    print('Precision:', list(zip(precision,labels))
+    print('Recall:', list(zip(recall,labels)))
     print('F1_by_class score:', list(zip(f1_all,labels)))
 
 
@@ -124,16 +124,16 @@ def evaluate_model_bilstm_crf(model_path, dataset):
 def evaluate_model_roberta(model_path, dataset):
     print("-----Loading and preparing data...-----")
     # model initialization
-    if dataset == 'NER_DEV_JUDGEMENT.json':
-        _, word_to_ix = build_representation('NER_DEV_JUDGEMENT.json')
-    if dataset == 'NER_DEV_PREAMBLE.json':
-        _, word_to_ix = build_representation('NER_DEV_PREAMBLE.json')
+    #if dataset == 'NER_DEV_JUDGEMENT.json':
+    #    _, word_to_ix = build_representation('NER_DEV_JUDGEMENT.json')
+    #if dataset == 'NER_DEV_PREAMBLE.json':
+    #    _, word_to_ix = build_representation('NER_DEV_PREAMBLE.json')
     
     # update test data to representation
     #raw_data = read_raw_data(dataset)
     #test_data = build_data_representation(raw_data)
-    #test_data = prepare_data(test_data,'testing')
     test_data, _  = read_raw_data(dataset)
+    test_data = prepare_data(test_data,'testing')
 
     print("-----Loaded and prepared data-----")
     print("-----Loading model-----")
@@ -145,8 +145,8 @@ def evaluate_model_roberta(model_path, dataset):
     labels = [ix_to_ent[i] for i in labels]
     
     print('F1 score:', f1)
-    print('Precision:', precision)
-    print('Recall:', recall)
+    print('Precision:', list(zip(precision,labels))
+    print('Recall:', list(zip(recall,labels)))
     print('F1_by_class score:', list(zip(f1_all,labels)))
     
     
