@@ -102,7 +102,7 @@ def evaluate_model_bilstm_crf(model_path, dataset):
     labels = [ix_to_ent[i] for i in labels]
 
     print('F1 score:', f1)
-    print('Precision:', list(zip(precision,labels))
+    print('Precision:', list(zip(precision,labels)))
     print('Recall:', list(zip(recall,labels)))
     print('F1_by_class score:', list(zip(f1_all,labels)))
 
