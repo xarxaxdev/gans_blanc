@@ -61,11 +61,11 @@ def compute_score(y_hat, y, avg):
 
     f1_classes = f1_metric.compute(predictions=y_hat, references= y, average=None)
     f1_classes = f1_classes['f1'].tolist()
-    f1 = f1_metric.compute(predictions=y_hat, references=y, average='macro')
-    precision = precision_metric.compute(predictions=y_hat, references=y, average=None)
-    recall = recall_metric.compute(predictions=y_hat, references=y, average=None)
+    f1 = f1_metric.compute(predictions=y_hat, references=y, average=avg)
+    precision = precision_metric.compute(predictions=y_hat, references=y, average=avg)
+    recall = recall_metric.compute(predictions=y_hat, references=y, average=avg)
     
-    return labels, f1['f1'], precision['precision'].tolist(), recall['recall'].tolist(), f1_classes
+    return labels, f1['f1'], precision['precision'], recall['recall'], f1_classes
 
 
 
@@ -98,12 +98,12 @@ def evaluate_model_bilstm_crf(model_path, dataset):
     
 
     # computing scores
-    labels, f1, precision, recall, f1_all = compute_score(y_hat, y, None)
+    labels, f1, precision, recall, f1_all = compute_score(y_hat, y, 'macro')
     labels = [ix_to_ent[i] for i in labels]
 
     print('F1 score:', f1)
-    print('Precision:', list(zip(precision,labels)))
-    print('Recall:', list(zip(recall,labels)))
+    print('Precision:', precision)
+    print('Recall:', recall)
     print('F1_by_class score:', list(zip(f1_all,labels)))
 
 
