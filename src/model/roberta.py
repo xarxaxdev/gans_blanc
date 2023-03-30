@@ -174,7 +174,7 @@ def train_model(model,dataset,val_data,epochs = 3,lr = 1e-5):
         elif 'train_loss' in metrics :
             tra_loss.append((metrics['train_loss'],metrics['epoch']))
         else :
-            tra_loss.append(metrics['loss'])
+            tra_loss.append((metrics['loss'],metrics['epoch']))
     return model,{'val_loss': val_loss,'val_f1':val_f1,'tra_loss':tra_loss }
     
 def predict_model(model,dataset):    
