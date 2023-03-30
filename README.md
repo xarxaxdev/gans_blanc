@@ -84,6 +84,17 @@ This took an hour for the NVIDIA GeForce GTX 1650.
 
 ### Evaluation
 
+This part will simply test a model then print the resulting csvs under src/evaluation_logs/. Once again, you may need to give permissions to your filesystem to run the scripts:
+
+```bash
+$ chmod 755 evaluate_models.sh
+```
+
+And simply run it, it will generate the csvs and show the results by terminal:
+
+```bash
+$ ./generate_models_roberta_final.sh
+```
 
 ## References
 1. [Advanced: Making Dynamic Decisions and the Bi-LSTM CRF](https://pytorch.org/tutorials/beginner/nlp/advanced_tutorial.html) | PyTorch Tutorials
