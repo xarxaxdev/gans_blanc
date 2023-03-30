@@ -30,11 +30,12 @@ def save_plot_train_loss(train_loss, filename):
 
 
 def save_plot(values, x_name,y_name, filename):
-    x = len(values)
-
+    xs = [x for _,x in values ]
+    ys = [y for y,_ in values ]
+    x = max(xs)
     fig, ax = plt.subplots(figsize=(10, 4))
     # visualize the loss values
-    ax.plot(values)
+    ax.plot(xs,ys)
     # set the labels
     ax.set_ylabel(f'{y_name}')
     ax.set_xlabel(f'{x} {x_name}')
@@ -42,7 +43,7 @@ def save_plot(values, x_name,y_name, filename):
 
     cur_path = os.path.split(os.path.realpath(__file__))[0]
     datafile = os.path.join(cur_path, 'plots', filename)
-
+    print(f'Saving file in {datafile}')
     plt.savefig(f'{datafile}.png', bbox_inches='tight')
 
 
@@ -66,22 +67,11 @@ def compute_score(y_hat, y):
         m = load(m_name)
         by_classes = m.compute(predictions=p, references= r, average=None)
         scores[f'{m_name}_by_class'] = by_classes[m_name].tolist()
-        scores[f'{m_name}'] = m.compute(predictions=p, references=r, average=avg)
+        scores[f'{m_name}'] = m.compute(predictions=p, references=r, average=avg)[m_name]
     
     for i in metrics:
         add_metric(i,y_hat,y)
-    #f1_classes = f1_metric.compute(predictions=y_hat, references= y, average=None)
-    #metrics['f1_by_class'] = f1_classes['f1'].tolist()
-    #f1 = f1_metric.compute(predictions=y_hat, references=y, average=avg)
-    #metrics['f1'] = f1_classes['f1'].tolist()
-    #f1_precision = f1_metric.compute(predictions=y_hat, references= y, average=None)
-    
-    #precision = precision_metric.compute(predictions=y_hat, references=y, average=avg)
-    #metrics['precision'] = precision
-    #recall = recall_metric.compute(predictions=y_hat, references=y, average=avg)
-    #metrics['recall'] = recall
-    
-    #return labels, f1['f1'], precision['precision'], recall['recall'], f1_classes
+
     scores['labels'] = labels
     return scores 
 
@@ -93,7 +83,7 @@ def write_scores(model_name, scores):
     #print(datafile)
     #assert(False)
     for m in metrics:
-        text += f'{m}\t{scores[m][m]}\n'
+        text += f'{m}\t{scores[m]}\n'
     text += 'Metric'+'\t'
     for i in range(len(scores['labels'])):
         text += f'\t{scores["labels"][i]}'
@@ -140,14 +130,14 @@ def evaluate_model_bilstm_crf(model_path, dataset):
 
     # computing scores
     scores = compute_score(y_hat, y)
-    labels = [ix_to_ent[i] for i in scores['labels']]
+    scores['labels'] = [ix_to_ent[i] for i in scores['labels']]
 
     print('F1 score:', scores['f1'])
     print('Precision:', scores['precision'])
     print('Recall:', scores['recall'])
-    print('F1_by_class score:', list(zip(scores['f1_by_class'],labels)))
-    print('Precision_by_class score:', list(zip(scores['precision_by_class'],labels)))
-    print('Recall_by_class score:', list(zip(scores['recall_by_class'],labels)))
+    print('F1_by_class score:', list(zip(scores['f1_by_class'],scores['labels'])))
+    print('Precision_by_class score:', list(zip(scores['precision_by_class'],scores['labels'])))
+    print('Recall_by_class score:', list(zip(scores['recall_by_class'],scores['labels'])))
     write_scores(model_path,scores)
 
 
@@ -157,8 +147,7 @@ def evaluate_model_roberta(model_path, dataset):
     print("-----Loading and preparing data...-----")
     # model initialization
     test_data, _  = read_raw_data(dataset)
-    test_data = prepare_data(test_data,'testing')
-
+    test_data = prepare_data(test_data[:100],'testing')
     print("-----Loaded and prepared data-----")
     print("-----Loading model-----")
     model = load_model(model_path)
@@ -166,14 +155,15 @@ def evaluate_model_roberta(model_path, dataset):
     print("-----Model loaded-----")
     print("-----Running model through test data and scoring-----")    
     scores = predict_model(model,test_data)
-    labels = [ix_to_ent[i] for i in labels]
-    
-    print('F1 score:', f1)
-    print('Precision:', list(zip(precision,labels)))
-    print('Recall:', list(zip(recall,labels)))
-    print('F1_by_class score:', list(zip(f1_all,labels)))
-    
+    scores['labels'] = [ix_to_ent[i] for i in scores['labels']]
 
-
+    print('F1 score:', scores['f1'])
+    print('Precision:', scores['precision'])
+    print('Recall:', scores['recall'])
+    print('F1_by_class score:', list(zip(scores['f1_by_class'],scores['labels'])))
+    print('Precision_by_class score:', list(zip(scores['precision_by_class'],scores['labels'])))
+    print('Recall_by_class score:', list(zip(scores['recall_by_class'],scores['labels'])))
+    print(scores)
+    write_scores(model_path,scores)
 
     

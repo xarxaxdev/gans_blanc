@@ -97,7 +97,7 @@ def build_roberta_model_base(training_data,validation_data):
 
 
 
-
+metrics = ['precision','recall','f1'] 
 def compute_metrics(p):
     predictions, labels = p
     predictions = np.argmax(predictions, axis=2)
@@ -119,22 +119,20 @@ def compute_metrics(p):
     f1_metric = load('f1')
     precision_metric = load('precision')
     recall_metric = load('recall')
-    f1_classes = f1_metric.compute(predictions=y_hat, references= y, average=None)['f1'].tolist()
-    f1 = f1_metric.compute(predictions=y_hat, references= y, average='macro')['f1']
-    precision = precision_metric.compute(predictions= y_hat, references= y, average=None)['precision'].tolist()
-    #precision['precision']= precision['precision'].tolist()
-    recall = recall_metric.compute(predictions=y_hat, references= y, average=None)['recall'].tolist()
-    #recall['recall']= recall['recall'].tolist()
-    #print('F1 score:', f1)
-    #print('Precision:', precision)
-    #print('Recall:', recall)
-    return {
-        "precision": precision,
-        "recall": recall,
-        "f1": f1,
-        "f1_classes": f1_classes,
-        "labels":y_classes
-    }
+    
+    scores = {}
+    avg = 'macro'
+    def add_metric(m_name,p,r):
+        m = load(m_name)
+        by_classes = m.compute(predictions=p, references= r, average=None)
+        scores[f'{m_name}_by_class'] = by_classes[m_name].tolist()
+        scores[f'{m_name}'] = m.compute(predictions=p, references=r, average=avg)[m_name]
+    scores['labels'] = y_classes
+    for i in metrics:
+        add_metric(i,y_hat,y)
+
+    return scores
+
 
 def train_model(model,dataset,val_data,epochs = 3,lr = 1e-5):    
     print('-----Preparing for training-----')
@@ -172,10 +170,10 @@ def train_model(model,dataset,val_data,epochs = 3,lr = 1e-5):
     for metrics in trainer.state.log_history:
         print(metrics)
         if 'eval_f1' in metrics:
-            val_loss.append(metrics['eval_loss'])
-            val_f1.append(metrics['eval_f1'])
+            val_loss.append((metrics['eval_loss'],metrics['epoch']))
+            val_f1.append((metrics['eval_f1'],metrics['epoch']))
         elif 'train_loss' in metrics :
-            tra_loss.append(metrics['train_loss'])
+            tra_loss.append((metrics['train_loss'],metrics['epoch']))
         else :
             tra_loss.append(metrics['loss'])
     return model,{'val_loss': val_loss,'val_f1':val_f1,'tra_loss':tra_loss }
@@ -199,16 +197,13 @@ def predict_model(model,dataset):
         compute_metrics=compute_metrics
     )
     
-    metrics = trainer.evaluate()
+    m_values = trainer.evaluate()
     print(metrics)
-    labels = metrics['eval_labels']
-    f1 = metrics['eval_f1']
-    precision = metrics['eval_precision']
-    recall = metrics['eval_recall']
-    f1_all = metrics['eval_f1_classes']
-    
-    return labels,f1,precision,recall,f1_all
-    
+    scores = {}
+    for m in ['labels']+ metrics + [f'{i}_by_class' for i in metrics]:
+        scores[m] = m_values['eval_'+m]
+     
+    return scores
     
     
 

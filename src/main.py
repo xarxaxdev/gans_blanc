@@ -52,6 +52,11 @@ def params():
         "--epochs", dest="epochs",
         help="number of epochs"
     )
+    
+    parser.add_argument(
+        "--round", dest="round",
+        help="round of roberta experimentation"
+    )
 
     parser.add_argument(
         "--batch", dest="batch",
@@ -167,8 +172,13 @@ def main():
         save_model(model,filename)
         print('-----Model saved-----')
         print('-----Saving model metrics-----')
+        if args.round in [1,2]:
+            subfolder = 'round' + args.round + '_roberta/'
+        else :
+            subfolder = 'other/'
+            
         for m in metrics:
-            save_plot(metrics[m],'epochs',m, filename  +f'.{m}.training')
+            save_plot(metrics[m],'epochs',m, subfolder+ filename  +f'.{m}.training')
         print('-----Model training metrics-----')
 
 
