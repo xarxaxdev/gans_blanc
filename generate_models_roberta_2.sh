@@ -1,6 +1,0 @@
-MODEL=roberta
-BATCHES=512
-EPOCHS=10
-DATASET=preamble
-#Best model is LR=0.00005
-#EPOCHS=3
