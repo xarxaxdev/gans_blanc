@@ -6,6 +6,12 @@ from utils.NLP_utils import *
 from model.roberta import *
 import random
 
+
+torch.manual_seed(123)
+set_seed(123)#transformers in roberta
+random.seed(123)
+
+
 def params():
     parser = argparse.ArgumentParser(
         description='BiLSTM-CRF for ANLP Final Project'
@@ -83,7 +89,6 @@ def params():
 def main():
     args = params()
     if args.split_datasets:
-        random.seed(123)
         files_to_save={}
         for dataset in ['NER_TRAIN_JUDGEMENT.json', 'NER_TRAIN_PREAMBLE.json']:
             data, word_to_ix = build_representation(dataset)

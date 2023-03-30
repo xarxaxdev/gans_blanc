@@ -8,7 +8,7 @@ BATCH_SIZE_VALIDATE_CONCURRENT=12*BATCH_SIZE_TRAIN_CONCURRENT
 
 
 # huggingface's transformers library
-from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer,set_seed,DataCollatorForTokenClassification,AutoTokenizer
+from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer,set_seed,DataCollatorForTokenClassification,AutoTokenizer,set_seed
 # huggingface's datasets library
 import datasets
 from evaluate import load
@@ -26,7 +26,6 @@ from utils.IOfunctions import *
 BATCH_SIZE_TRAIN_CONCURRENT=4
 BATCH_SIZE_VALIDATE_CONCURRENT=10*BATCH_SIZE_TRAIN_CONCURRENT
 
-set_seed(123)
 roberta_version = 'distilroberta-base'
 tokenizer = AutoTokenizer.from_pretrained(roberta_version,add_prefix_space=True)
 #PAD = tokenizer.pad_token

@@ -10,9 +10,6 @@ import random
 
 HIDDEN_DIM=2
 
-torch.manual_seed(1)
-random.seed(10)
-
 
 def build_representation(dataset):
 
