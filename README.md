@@ -1,10 +1,10 @@
-# BiLSTM-CRF and RoBERTa Models for Legal Named Entity Recognition
+# BiLSTM-CRF and DistilRoBERTa Models for Legal Named Entity Recognition
 #### gans blank  ┐( ͡° ʖ̯ ͡°)┌ :swan:
 ## Project Description
 This repository contains the final project for the course 'Advanced Natural Language Processing' of the M.Sc. Cognitive Systems: Language, Learning and Reasoning at Universität Potsdam.
 This project deals with the [SemEval-2023 task 6: LegalEval , subtask B: Legal Entity Recognition (L-NER)](https://sites.google.com/view/legaleval/home#h.fbpoqsn0hjeh). You can find the paper presenting this task [here](https://aclanthology.org/2022.nllp-1.15/). This repository has been contributed by Guillem Gili i Bueno, Yi-Sheng Hsu and Delfina Jovanovich Trakál.
 
-In this project, we propose two models for L-NER: a bidirectional long-short term memory neural network with a conditional random field layer (BiLSTM-CRF) and a RoBERTa model.
+In this project, we propose two models for L-NER: a bidirectional long-short term memory neural network with a conditional random field layer (BiLSTM-CRF) and a pretrained DistilRoBERTa model.
 ## Requirements
 The packages required to run this project can be found in [requirements.txt](requirements.txt).
 ```bash
@@ -38,7 +38,7 @@ Models will be in the folder  `src/generated_models` and plots in the folder `sr
 
 Initialize either a BiLSTM-CRF or a RoBERTa model by using either the `--bilstm_crf` or the `--roberta` arguments. For training, specify for either model the number of epochs, the batch size (only for BiLSTM-CRF), and the learning rate with the respective parameters `--epochs`,`--batch_size`, and `--lr`. Choose either the `judgement` or the `preamble` datasets with the argument `--dataset`. Here are the base examples:
 ```bash
-$ python3 src/main.py --bilstm_crf --epochs 100 --batch_size 16 --lr 0.001 --dataset judgement
+$ python3 src/main.py --bilstm_crf --epochs 25 --batch_size 256 --lr 0.05 --dataset judgement
 $ python3 src/main.py --roberta  --epochs 10 --lr 0.00005 --dataset preamble --round 1
 ```
 
@@ -48,7 +48,7 @@ $ python3 src/main.py --roberta  --epochs 10 --lr 0.00005 --dataset preamble --r
 Run `$ python src/main.py --evaluate_model` to test and evaluate either model on either judgement or preamble dev data. Specify which model to evaluate after the argument `--model` and on which dataset to test (`judgement` or `preamble`). We use F1 score. Here is an example:
 
 ```bash
-$ python src/main.py --evaluate_model bilstm_crf.judgement.e100.bs512.lr0.001 --model judgement
+$ python src/main.py --evaluate_model bilstm_crf.judgement.e25.bs256.lr0.05 --model judgement
 ```
 
 ## Reproducing our results
@@ -84,6 +84,21 @@ This took an hour for the NVIDIA GeForce GTX 1650.
 
 #### BiLSTM-CRF
 
+You may need to give permissions to your filesystem to run the scripts:
+
+```bash
+$ chmod 755 generate_models_bilstm_crf.sh
+```
+
+Then simply run the following script:
+
+```bash
+$ ./generate_models_roberta.sh
+```
+
+The script contains data splitting, downloading GloVe embeddings, and training the models with the hyperparameters that we mainly referred to: epoch=25, batch_size=256, lr=0.01 (preamble) or 0.05 (judgement).
+
+It takes around 7 hours to train the model with both datasets on a MacBook Pro (M1, 2021). It is also possible to edit `generate_models_bilstm_crf.sh` to make adjustments such as reducing epochs. Primanry results of this model can usually be observed with around 15 epochs.
 
 ### Evaluation
 

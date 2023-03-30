@@ -1,4 +1,4 @@
-#python3 src/main.py --split_datasets
+python3 src/main.py --split_datasets
 MODEL=roberta
 EPOCHS=10
 DATASET=preamble
