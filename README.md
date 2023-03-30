@@ -30,7 +30,7 @@ $ python src/main.py --download_glove
 
 In this case we need to download the pretrained model for `distilroberta-base` since this model is the milestone we will be fine-tuning to our data. The code in src/roberta.py automatically downloads its pretrained model from huggingface, so there is no need to run any explicit commands. However note that the first time this code is run, it may take a while to download the model.
 
-It is also worth nothing that for roberta the batch\_size values are hardcoded, since we had to cater to our GPU limitations(NVIDIA GeForce GTX 1650). The current batch\_sizes are: 4 for training,48 for validation. and are declared atop roberta as `BATCH_SIZE_TRAIN_CONCURRENT` and `BATCH_SIZE_VALIDATE_CONCURRENT`. Feel free to tinker with them if you are running out of GPU memory or you want to run the training faster.
+It is also worth nothing that for roberta the batch\_size values are hardcoded, since we had to cater to our GPU limitations(NVIDIA GeForce GTX 1650). The current batch\_sizes are: 4 for training, 48 for validation and are declared atop `src/roberta.py` as `BATCH_SIZE_TRAIN_CONCURRENT` and `BATCH_SIZE_VALIDATE_CONCURRENT`. Feel free to tinker with them if you are running out of GPU memory or you want to run the training faster.
 
 ### Training 
 
