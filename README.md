@@ -36,9 +36,10 @@ It is also worth nothing that for roberta the batch\_size values are hardcoded, 
 
 Models will be in the folder  `src/generated_models` and plots in the folder `src/plots`. In the case of roberta, where to save the plots can be specified with the `--round` parameter(1, 2 or other that will leave the plots in the folder inside `src/plots` `round1_roberta`, `round2_roberta` or `other` respectively). 
 
-Initialize either a BiLSTM-CRF or a RoBERTa model by using either the `--bilstm_crf` or the `--roberta` arguments. For training, specify for either model the number of epochs, the batch size (only for BiLSTM-CRF), and the learning rate with the respective parameters `--epochs`,`--batch_size`, and `--lr`. Choose either the `judgement` or the `preamble` datasets with the argument `--dataset`. Here is an example:
+Initialize either a BiLSTM-CRF or a RoBERTa model by using either the `--bilstm_crf` or the `--roberta` arguments. For training, specify for either model the number of epochs, the batch size (only for BiLSTM-CRF), and the learning rate with the respective parameters `--epochs`,`--batch_size`, and `--lr`. Choose either the `judgement` or the `preamble` datasets with the argument `--dataset`. Here are the base examples:
 ```bash
-$ python src/main.py --bilstm_crf --epochs 100 --batch_size 16 --lr 0.001 --dataset judgement
+$ python3 src/main.py --bilstm_crf --epochs 100 --batch_size 16 --lr 0.001 --dataset judgement
+$ python3 src/main.py --roberta  --epochs 10 --lr 0.00005 --dataset preamble --round 1
 ```
 
 

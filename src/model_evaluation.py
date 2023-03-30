@@ -147,7 +147,7 @@ def evaluate_model_roberta(model_path, dataset):
     print("-----Loading and preparing data...-----")
     # model initialization
     test_data, _  = read_raw_data(dataset)
-    test_data = prepare_data(test_data[:100],'testing')
+    test_data = prepare_data(test_data,'testing')
     print("-----Loaded and prepared data-----")
     print("-----Loading model-----")
     model = load_model(model_path)
