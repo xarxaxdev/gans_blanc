@@ -1,6 +1,5 @@
 #python3 src/main.py --split_datasets
 MODEL=roberta
-BATCHES=512
 EPOCHS=10
 DATASET=preamble
 for LR in 0.00001 0.00002 0.00005 0.0001

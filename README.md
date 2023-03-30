@@ -18,6 +18,7 @@ More details on the data extraction and annotation processes can be found in the
 
 ## Setup
 ### Training
+#### BiLSTM + CRF
 Download the pretrained Glove word embeddings:
 ```bash
 $ python src/main.py --download_glove
