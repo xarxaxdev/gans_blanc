@@ -177,7 +177,7 @@ def main():
         save_model(model,filename)
         print('-----Model saved-----')
         print('-----Saving model metrics-----')
-        if args.round in [1,2]:
+        if args.round in ['1','2']:
             subfolder = 'round' + args.round + '_roberta/'
         else :
             subfolder = 'other/'
