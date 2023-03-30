@@ -34,11 +34,13 @@ It is also worth nothing that for roberta the batch\_size values are hardcoded, 
 
 ### Training 
 
+Models will be in the folder  `src/generated_models` and plots in the folder `src/plots`. In the case of roberta, where to save the plots can be specified with the `--round` parameter(1, 2 or other that will leave the plots in the folder inside `src/plots` `round1_roberta`, `round2_roberta` or `other` respectively). 
+
 Initialize either a BiLSTM-CRF or a RoBERTa model by using either the `--bilstm_crf` or the `--roberta` arguments. For training, specify for either model the number of epochs, the batch size (only for BiLSTM-CRF), and the learning rate with the respective parameters `--epochs`,`--batch_size`, and `--lr`. Choose either the `judgement` or the `preamble` datasets with the argument `--dataset`. Here is an example:
 ```bash
 $ python src/main.py --bilstm_crf --epochs 100 --batch_size 16 --lr 0.001 --dataset judgement
 ```
-After successful training, the generated model will be saved to `src/generated_models`.
+
 
 ### Testing and Evaluation
 
@@ -84,7 +86,7 @@ This took an hour for the NVIDIA GeForce GTX 1650.
 
 ### Evaluation
 
-This part will simply test a model then print the resulting csvs under src/evaluation_logs/. Once again, you may need to give permissions to your filesystem to run the scripts:
+This part will simply test a model then print the resulting csvs under `src/evaluation_logs/`. Once again, you may need to give permissions to your filesystem to run the scripts:
 
 ```bash
 $ chmod 755 evaluate_models.sh
