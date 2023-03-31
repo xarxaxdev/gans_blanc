@@ -20,7 +20,15 @@ More details on the data extraction and annotation processes can be found in the
 
 ### Training Prequisites
 
+We must do the split between training,validation and testing:
+
+```bash
+$ python src/main.py --split_datasets
+```
+
 #### BiLSTM-CRF
+
+
 
 To use this method we will need some pretrained Word Embeddings. Download the pretrained Glove word embeddings:
 ```bash

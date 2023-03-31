@@ -13,6 +13,3 @@ for LR in 0.00001 0.00002 0.00005 0.0001
 do
     python3 src/main.py --$MODEL --dataset $DATASET --epochs $EPOCHS --lr $LR --round $ROUND
 done
-
-#EPOCHS=10
-
