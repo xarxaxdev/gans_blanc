@@ -77,8 +77,6 @@ def write_scores(model_name, scores):
     cur_path = os.path.split(os.path.realpath(__file__))[0]
     datafile = os.path.join(cur_path, 'evaluation_logs', model_name)
 
-    #print(datafile)
-    #assert(False)
     for m in metrics:
         text += f'{m}\t{scores[m]}\n'
     text += 'Metric'+'\t'
