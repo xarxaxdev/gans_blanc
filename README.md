@@ -129,4 +129,5 @@ $ ./evaluate_models.sh
 ## References
 1. [Advanced: Making Dynamic Decisions and the Bi-LSTM CRF](https://pytorch.org/tutorials/beginner/nlp/advanced_tutorial.html) | PyTorch Tutorials
 2. [F1-Score](https://huggingface.co/docs/evaluate/index) | Hugging Face evaluation Library
-3. [pytorch-RoBERTa-named-entity-recognition](https://www.kaggle.com/code/eriknovak/pytorch-roberta-named-entity-recognition) | Kaggle
+3. [DistilRoBERTa](https://huggingface.co/distilroberta-base) | Hugging Face DistilRoBERTa model
+4. [pytorch-RoBERTa-named-entity-recognition](https://www.kaggle.com/code/eriknovak/pytorch-roberta-named-entity-recognition) | Kaggle RoBERTa model
