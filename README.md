@@ -7,6 +7,7 @@ This project deals with the [SemEval-2023 task 6: LegalEval , subtask B: Legal E
 In this project, we propose two models for L-NER: a bidirectional long-short term memory neural network with a conditional random field layer (BiLSTM-CRF) and a pretrained DistilRoBERTa model.
 ## Requirements
 The packages required to run this project can be found in [requirements.txt](requirements.txt).
+
 ```bash
 $ pip install -r requirements.txt
 ```
@@ -26,9 +27,10 @@ We must do the split between training,validation and testing:
 $ python src/main.py --split_datasets
 ```
 
+The new files will also be saved under `src/data`
+
+
 #### BiLSTM-CRF
-
-
 
 To use this method we will need some pretrained Word Embeddings. Download the pretrained Glove word embeddings:
 ```bash
@@ -39,6 +41,7 @@ $ python src/main.py --download_glove
 In this case we need to download the pretrained model for `distilroberta-base` since this model is the milestone we will be fine-tuning to our data. The code in src/roberta.py automatically downloads its pretrained model from huggingface, so there is no need to run any explicit commands. However note that the first time this code is run, it may take a while to download the model.
 
 It is also worth nothing that for roberta the batch\_size values are hardcoded, since we had to cater to our GPU limitations(NVIDIA GeForce GTX 1650). The current batch\_sizes are: 4 for training, 48 for validation and are declared atop `src/roberta.py` as `BATCH_SIZE_TRAIN_CONCURRENT` and `BATCH_SIZE_VALIDATE_CONCURRENT`. Feel free to tinker with them if you are running out of GPU memory or you want to run the training faster.
+
 
 ### Training 
 
@@ -58,6 +61,7 @@ Run `$ python src/main.py --evaluate_model` to test and evaluate either model on
 ```bash
 $ python src/main.py --evaluate_model bilstm_crf.judgement.e25.bs256.lr0.05 --model judgement
 ```
+
 
 ## Reproducing our results
 
@@ -119,7 +123,7 @@ $ chmod 755 evaluate_models.sh
 And simply run it, it will generate the csvs and show the results by terminal:
 
 ```bash
-$ ./generate_models_roberta_final.sh
+$ ./evaluate_models.sh
 ```
 
 ## References
