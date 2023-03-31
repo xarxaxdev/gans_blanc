@@ -1,3 +1,4 @@
+pip3 install -r requirements.txt
 python3 src/main.py --split_datasets
 python3 src/main.py --download_glove
 
